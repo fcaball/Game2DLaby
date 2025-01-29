@@ -1,0 +1,22 @@
+name: MazeGenerator CI/CD
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Setup Unity
+      uses: game-ci/unity-setup@v2
+      with:
+        unityVersion: '6000.0.32f1'
+    - name: Build project
+      run: |
+        /opt/unity/Editor/Unity -quit -batchmode -nographics -logFile -projectPath . -executeMethod BuildScript.BuildMazeGeneratorWithWebProfile
