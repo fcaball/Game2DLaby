@@ -58,4 +58,4 @@ jobs:
           mv build/* Linux/
           git add Linux/
           git commit -m 'Add new build'
-          git push origin builds
+          git push origin Builds
