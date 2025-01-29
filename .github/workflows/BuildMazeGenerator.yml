@@ -1,4 +1,4 @@
-name: Build Unity Project for Windows
+name: Build Unity Project
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    name: Build Unity Windows Standalone on Windows
+    name: Build Unity Windows Project
     runs-on: windows-latest
 
     steps:
@@ -24,7 +24,7 @@ jobs:
           restore-keys: |
             Library-${{ runner.os }}-
 
-      # Étape 3: Installer Unity avec le lien fourni
+      # Étape 3: Installer Unity
       - name: Install Unity
         run: |
           Invoke-WebRequest -Uri https://download.unity3d.com/download_unity/b2e806cf271c/Windows64EditorInstaller/UnitySetup64-6000.0.32f1.exe -OutFile UnitySetup64-6000.0.32f1.exe
@@ -36,33 +36,21 @@ jobs:
         run: |
           & "C:\Unity\Editor\Unity.exe" -version
 
-      # Étape 5: Activer la licence Unity (ajouter un fichier .ulf dans les secrets)
-          # Étape 5: Activer la licence Unity (ajouter un fichier .ulf dans les secrets)
+      # Étape 5: Activer la licence Unity
       - name: Activate Unity License
         run: |
-          $xmlContent = @"
-          <?xml version="1.0" encoding="UTF-8"?>
-          <root>
-              <TimeStamp Value="1U">2025-01-29</TimeStamp>
-              <Product>Unity</Product>
-              <Version>6000.0.32f1</Version>
-          </root>
-          "@
-          $xmlContent | Out-File -FilePath "C:\Unity\Editor\Data\Resources\Licensing\client-ulf-file.ulf" -Force
-          
+          echo ${{ secrets.UNITY_LICENSE }} > "C:\Unity\Editor\Data\Resources\Licensing\client-ulf-file.ulf"
           & "C:\Unity\Editor\Unity.exe" -batchmode -nographics -quit -logFile "C:\build_logs\unity_build.log"
 
-      
-      # Étape 6: Créer un répertoire pour les logs et lancer le build Unity pour Windows
+      # Étape 6: Créer un répertoire pour les logs et lancer le build Unity
       - name: Prepare for Build
         run: |
           New-Item -Path "C:\build_logs" -ItemType Directory -Force
           echo "Starting the build..."
           $env:UNITY_LOG_FILE = "C:\build_logs\unity_build.log"
-          & "C:\Unity\Editor\Unity.exe" -batchmode -nographics -quit `
+          & "C:\Unity\Editor\Unity.exe" -batchmode -nographics -quit ` 
             -projectPath "$(pwd)" `
-            -buildTarget StandaloneWindows64 `
-            -executeMethod BuildMazeGenerationWindows `
+            -executeMethod BuildMazeGenerationWindows ` 
             -logFile $env:UNITY_LOG_FILE
 
       # Étape 7: Lire le contenu du fichier de log pour obtenir des détails
