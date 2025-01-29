@@ -37,10 +37,21 @@ jobs:
           & "C:\Unity\Editor\Unity.exe" -version
 
       # Étape 5: Activer la licence Unity (ajouter un fichier .ulf dans les secrets)
+          # Étape 5: Activer la licence Unity (ajouter un fichier .ulf dans les secrets)
       - name: Activate Unity License
         run: |
-          echo ${{ secrets.UNITY_LICENSE }} > "C:\Unity\Editor\Data\Resources\Licensing\client-ulf-file.ulf"
+          $xmlContent = @"
+          <?xml version="1.0" encoding="UTF-8"?>
+          <root>
+              <TimeStamp Value="1U">2025-01-29</TimeStamp>
+              <Product>Unity</Product>
+              <Version>6000.0.32f1</Version>
+          </root>
+          "@
+          $xmlContent | Out-File -FilePath "C:\Unity\Editor\Data\Resources\Licensing\client-ulf-file.ulf" -Force
+          
           & "C:\Unity\Editor\Unity.exe" -batchmode -nographics -quit -logFile "C:\build_logs\unity_build.log"
+
       
       # Étape 6: Créer un répertoire pour les logs et lancer le build Unity pour Windows
       - name: Prepare for Build
