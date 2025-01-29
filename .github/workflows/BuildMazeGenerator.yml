@@ -36,24 +36,31 @@ jobs:
         run: |
           & "C:\Unity\Editor\Unity.exe" -version
 
-      # Étape 5: Lancer le build Unity
-      - name: Build Unity Project
+      # Étape 5: Créer un répertoire pour les logs et lancer le build Unity
+      - name: Prepare for Build
         run: |
+          # Créer un répertoire spécifique pour les logs Unity
+          New-Item -Path "C:\build_logs" -ItemType Directory -Force
+
           echo "Starting the build..."
-          $env:UNITY_LOG_FILE = "$(pwd)\unity_build.log"
+          $env:UNITY_LOG_FILE = "C:\build_logs\unity_build.log"
           & "C:\Unity\Editor\Unity.exe" -batchmode -nographics -quit `
             -projectPath "$(pwd)" `
             -executeMethod BuildMazeGenerationWebProfile `
             -logFile $env:UNITY_LOG_FILE
-          Get-Content $env:UNITY_LOG_FILE
 
-      # Étape 6: Déplacer le build dans un dossier spécifique
+      # Étape 6: Lire le contenu du fichier de log pour obtenir des détails
+      - name: Show Build Log
+        run: |
+          Get-Content "C:\build_logs\unity_build.log"
+
+      # Étape 7: Déplacer le build dans un dossier spécifique
       - name: Move Build to Separate Directory
         run: |
           New-Item -Path build_output -ItemType Directory -Force
           Move-Item -Path Build\* -Destination build_output\ -Force
 
-      # Étape 7: Commit et Push sur la branche 'builds'
+      # Étape 8: Commit et Push sur la branche 'builds'
       - name: Commit and Push Build to 'builds' Branch
         run: |
           git config --global user.name "github-actions[bot]"
