@@ -24,12 +24,12 @@ jobs:
           restore-keys: |
             Library-${{ runner.os }}-
 
-      # Étape 3: Installer Unity manuellement
+      # Étape 3: Installer Unity avec le lien fourni
       - name: Install Unity
         run: |
-          Invoke-WebRequest -Uri https://download.unity3d.com/download_unity/6000.0.32f1/UnitySetup.exe -OutFile UnitySetup.exe
-          Start-Process -Wait -FilePath UnitySetup.exe -ArgumentList "/S /D=C:\Unity"
-          Remove-Item -Force UnitySetup.exe
+          Invoke-WebRequest -Uri https://download.unity3d.com/download_unity/b2e806cf271c/Windows64EditorInstaller/UnitySetup64-6000.0.32f1.exe -OutFile UnitySetup64-6000.0.32f1.exe
+          Start-Process -Wait -FilePath UnitySetup64-6000.0.32f1.exe -ArgumentList "/S /D=C:\Unity"
+          Remove-Item -Force UnitySetup64-6000.0.32f1.exe
 
       # Étape 4: Vérification de l'installation d'Unity
       - name: Verify Unity Installation
