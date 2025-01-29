@@ -1,4 +1,4 @@
-name: Build Unity Project
+name: Build Unity Project for Windows
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    name: Build Unity Web Profile on Windows
+    name: Build Unity Windows Standalone on Windows
     runs-on: windows-latest
 
     steps:
@@ -36,36 +36,41 @@ jobs:
         run: |
           & "C:\Unity\Editor\Unity.exe" -version
 
-      # Étape 5: Créer un répertoire pour les logs et lancer le build Unity
+      # Étape 5: Activer la licence Unity (ajouter un fichier .ulf dans les secrets)
+      - name: Activate Unity License
+        run: |
+          echo ${{ secrets.UNITY_LICENSE }} > "C:\Unity\Editor\Data\Resources\Licensing\client-ulf-file.ulf"
+          & "C:\Unity\Editor\Unity.exe" -batchmode -nographics -quit -logFile "C:\build_logs\unity_build.log"
+      
+      # Étape 6: Créer un répertoire pour les logs et lancer le build Unity pour Windows
       - name: Prepare for Build
         run: |
-          # Créer un répertoire spécifique pour les logs Unity
           New-Item -Path "C:\build_logs" -ItemType Directory -Force
-
           echo "Starting the build..."
           $env:UNITY_LOG_FILE = "C:\build_logs\unity_build.log"
           & "C:\Unity\Editor\Unity.exe" -batchmode -nographics -quit `
             -projectPath "$(pwd)" `
-            -executeMethod BuildMazeGenerationWebProfile `
+            -buildTarget StandaloneWindows64 `
+            -executeMethod BuildMazeGenerationWindows `
             -logFile $env:UNITY_LOG_FILE
 
-      # Étape 6: Lire le contenu du fichier de log pour obtenir des détails
+      # Étape 7: Lire le contenu du fichier de log pour obtenir des détails
       - name: Show Build Log
         run: |
           Get-Content "C:\build_logs\unity_build.log"
 
-      # Étape 7: Déplacer le build dans un dossier spécifique
+      # Étape 8: Déplacer le build dans un dossier spécifique
       - name: Move Build to Separate Directory
         run: |
           New-Item -Path build_output -ItemType Directory -Force
           Move-Item -Path Build\* -Destination build_output\ -Force
 
-      # Étape 8: Commit et Push sur la branche 'builds'
+      # Étape 9: Commit et Push sur la branche 'builds'
       - name: Commit and Push Build to 'builds' Branch
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git checkout -B builds
           git add build_output
-          git commit -m "New Unity WebGL build"
+          git commit -m "New Unity Windows build"
           git push origin builds --force
