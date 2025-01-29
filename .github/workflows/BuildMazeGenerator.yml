@@ -7,8 +7,8 @@ on:
 
 jobs:
   build:
-    name: Build Unity Web Profile
-    runs-on: ubuntu-latest
+    name: Build Unity Web Profile on Windows
+    runs-on: windows-latest
 
     steps:
       # Étape 1: Checkout du code
@@ -36,27 +36,27 @@ jobs:
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
           UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
 
-      # Étape 4: Vérifier l'installation d'Unity
+      # Étape 4: Vérification de l'installation d'Unity
       - name: Verify Unity Installation
         run: |
-          /opt/Unity/Editor/Unity -version
+          "C:\Program Files\Unity\Editor\Unity.exe" -version
 
       # Étape 5: Lancer le build Unity
       - name: Build Unity Project
         run: |
           echo "Starting the build..."
-          export UNITY_LOG_FILE=$(pwd)/unity_build.log
-          /opt/Unity/Editor/Unity -batchmode -nographics -quit \
+          $env:UNITY_LOG_FILE = "$(pwd)\unity_build.log"
+          "C:\Program Files\Unity\Editor\Unity.exe" -batchmode -nographics -quit \
             -projectPath $(pwd) \
             -executeMethod BuildMazeGenerationWebProfile \
-            -logFile $UNITY_LOG_FILE
-          cat $UNITY_LOG_FILE
+            -logFile $env:UNITY_LOG_FILE
+          Get-Content $env:UNITY_LOG_FILE
 
       # Étape 6: Déplacer le build dans un dossier spécifique
       - name: Move Build to Separate Directory
         run: |
-          mkdir -p build_output
-          mv Build/* build_output/ || echo "No build files found"
+          New-Item -Path build_output -ItemType Directory -Force
+          Move-Item -Path Build\* -Destination build_output\ -Force
 
       # Étape 7: Commit et Push sur la branche 'builds'
       - name: Commit and Push Build to 'builds' Branch
