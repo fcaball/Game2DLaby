@@ -10,12 +10,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Activate Unity License
-        run: |
-          echo "${{ secrets.UNITY_LICENSE }}" > UnityLicenseFile.ulf
-          /opt/unity/Editor/Unity -batchmode -nographics -quit -manualLicenseFile UnityLicenseFile.ulf
-
-      - name: Build project
+      - name: Set up Unity
         uses: game-ci/unity-builder@v2
         with:
           unityVersion: 6000.0.32f1
