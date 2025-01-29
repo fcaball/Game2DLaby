@@ -23,7 +23,7 @@ jobs:
             Library-${{ runner.os }}-
 
       - name: Set up Unity
-        uses: game-ci/unity-builder@v2
+        uses: game-ci/unity-builder@v4
         with:
           unityVersion: 6000.0.32f1
           targetPlatform: WebGL
