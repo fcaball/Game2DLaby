@@ -24,29 +24,24 @@ jobs:
           restore-keys: |
             Library-${{ runner.os }}-
 
-      # Étape 3: Installation de Unity
-      - name: Set up Unity
-        uses: game-ci/unity-builder@v4
-        with:
-          unityVersion: 6000.0.32f1
-          targetPlatform: WebGL
-        env:
-          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
-          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
-          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
-          UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
+      # Étape 3: Installer Unity manuellement
+      - name: Install Unity
+        run: |
+          Invoke-WebRequest -Uri https://download.unity3d.com/download_unity/6000.0.32f1/UnitySetup.exe -OutFile UnitySetup.exe
+          Start-Process -Wait -FilePath UnitySetup.exe -ArgumentList "/S /D=C:\Unity"
+          Remove-Item -Force UnitySetup.exe
 
       # Étape 4: Vérification de l'installation d'Unity
       - name: Verify Unity Installation
         run: |
-          "C:\Program Files\Unity\Editor\Unity.exe" -version
+          "C:\Unity\Editor\Unity.exe" -version
 
       # Étape 5: Lancer le build Unity
       - name: Build Unity Project
         run: |
           echo "Starting the build..."
           $env:UNITY_LOG_FILE = "$(pwd)\unity_build.log"
-          "C:\Program Files\Unity\Editor\Unity.exe" -batchmode -nographics -quit \
+          "C:\Unity\Editor\Unity.exe" -batchmode -nographics -quit \
             -projectPath $(pwd) \
             -executeMethod BuildMazeGenerationWebProfile \
             -logFile $env:UNITY_LOG_FILE
