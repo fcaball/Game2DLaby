@@ -20,4 +20,4 @@ jobs:
 
     - name: Build project
       run: |
-        & "C:\Program Files\Unity\Hub\Editor\6000.0.32f1\Editor\Unity.exe" -quit -batchmode -nographics -logFile -projectPath . -executeMethod BuildScript.BuildMazeGeneratorWithWebProfile
+        "C:\Program Files\Unity\Hub\Editor\6000.0.32f1\Editor\Unity.exe" -quit -batchmode -nographics -logFile -projectPath . -executeMethod BuildScript.BuildMazeGeneratorWithWebProfile
