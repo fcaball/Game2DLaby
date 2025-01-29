@@ -23,7 +23,7 @@ jobs:
             Library-${{ runner.os }}-
 
       - name: Set up Unity
-        uses: game-ci/unity-builder@v4.2.3
+        uses: game-ci/unity-builder@v2
         with:
           unityVersion: 6000.0.32f1
           targetPlatform: WebGL
@@ -34,15 +34,13 @@ jobs:
           UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
 
       - name: Build with Custom Function
-        uses: game-ci/unity-runner@v2
-        with:
-          unityVersion: 6000.0.32f1
-          executeMethod: BuildMazeGenerationWebProfile
-        env:
-          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
-          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
-          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
-          UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
+        run: |
+          export UNITY_LOG_FILE=$(pwd)/unity_build.log
+          unity-builder -batchmode -nographics -quit \
+            -projectPath $(pwd) \
+            -executeMethod BuildMazeGenerationWebProfile \
+            -logFile $UNITY_LOG_FILE
+          cat $UNITY_LOG_FILE
 
       - name: Move Build to Separate Directory
         run: |
