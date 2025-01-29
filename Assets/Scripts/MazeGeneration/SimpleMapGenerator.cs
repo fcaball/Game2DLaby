@@ -13,6 +13,8 @@ public class SimpleMapGenerator : MonoBehaviour
     [SerializeField] protected Vector3Int startPosition;
     private int iterations = 0;
     private int walkLength = 0;
+    private float probability = 0.0f;
+    private bool isRoomCreationIsPossible = true;
     private bool isEachIterationStartFromRandomlyPosition = true;
     [SerializeField] private TileMapVisualizer tileMapVisualizer;
     private HashSet<Vector3Int> mapTiles = new();
@@ -38,13 +40,23 @@ public class SimpleMapGenerator : MonoBehaviour
                 }
                 else
                 {
-                    StartCoroutine(RunProceduralGenerationCoroutine(RunRandomWalkCoroutine()));
+                    StartCoroutine(RunProceduralGenerationCoroutine(RunRandomWalkCoroutine(startPosition,true)));
                 }
                 break;
 
             case 1:
                 ClearWalls();
                 StartCoroutine(RunProceduralGenerationCoroutine(RunWallGeneration()));
+                break;
+            case 2:
+                if (iterations == 0 || walkLength == 0)
+                {
+                    MissingParameter.Invoke();
+                }
+                else
+                {
+                    StartCoroutine(RunProceduralGenerationCoroutine(RunCorridorWalkCoroutine()));
+                }
                 break;
 
         }
@@ -69,9 +81,9 @@ public class SimpleMapGenerator : MonoBehaviour
     #region RandomWalk
 
 
-    private IEnumerator RunRandomWalkCoroutine()
+    private IEnumerator RunRandomWalkCoroutine(Vector3Int startPos, bool isLoadingHaveToBeUpdated)
     {
-        var currentPosition = startPosition;
+        var currentPosition = startPos;
         HashSet<Vector3Int> positions = new();
         for (int i = 0; i < iterations; i++)
         {
@@ -87,14 +99,42 @@ public class SimpleMapGenerator : MonoBehaviour
                 }
                 currentPosition = new Vector3Int(positions.ElementAt(index).x, positions.ElementAt(index).y, 0);
             }
-            Debug.Log(i / iterations);
-            LoadingPicture.fillAmount = (float)i / iterations;
+            if (isLoadingHaveToBeUpdated)
+                LoadingPicture.fillAmount = (float)i / iterations;
             yield return null;
         }
         mapTiles.UnionWith(positions);
     }
     #endregion
 
+    #region CorridorWalk
+
+
+    private IEnumerator RunCorridorWalkCoroutine()
+    {
+        var currentPosition = startPosition;
+        HashSet<Vector3Int> positions = new();
+        for (int i = 0; i < iterations; i++)
+        {
+            var path = ProceduralGenerationAlgorithms.SimpleCorridorRandomWalk(currentPosition, walkLength, mapTiles.ToList());
+
+            currentPosition = path.Last();
+            positions.UnionWith(path);
+            if (isRoomCreationIsPossible && Random.Range(0, 1) < probability)
+            {
+                RunRandomWalkCoroutine(currentPosition,false);
+            }
+            Debug.Log(i / iterations);
+            LoadingPicture.fillAmount = (float)i / iterations;
+            yield return null;
+        }
+
+        mapTiles.UnionWith(positions);
+    }
+
+
+
+    #endregion
     #region WallGeneration
 
     IEnumerator RunWallGeneration()
@@ -306,6 +346,17 @@ public class SimpleMapGenerator : MonoBehaviour
         }
         tileMapVisualizer.PaintTiles();
     }
+
+    public void SetProbalityOfCreateRoom(string v)
+    {
+        float.TryParse(v, out probability);
+    }
+
+    public void SetIsRoomCreationIsPossible(bool value)
+    {
+        isRoomCreationIsPossible = value;
+    }
+
 }
 
 public struct Vector2Int

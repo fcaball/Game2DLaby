@@ -13,8 +13,8 @@ public static class ProceduralGenerationAlgorithms
 
         for (int i = 0; i < walkLength; i++)
         {
-            var dir=Direction2D.GetRandomDirection();
-            var newPosition = previousPosition + dir ;
+            var dir = Direction2D.GetRandomDirection();
+            var newPosition = previousPosition + dir;
             bool isPositionIsAccessible = true;
             foreach (var tile in tileDatas)
             {
@@ -31,6 +31,23 @@ public static class ProceduralGenerationAlgorithms
         }
         return path;
     }
+
+    public static HashSet<Vector3Int> SimpleCorridorRandomWalk(Vector3Int startPosition, int walkLength, List<Vector3Int> tileDatas)
+    {
+        HashSet<Vector3Int> path = new();
+        var previousPosition = startPosition;
+
+        var dir = Direction2D.GetRandomDirection();
+        for (int i = 0; i < walkLength; i++)
+        {
+            var newPosition = previousPosition + dir;
+            path.Add(new() { x = newPosition.x, y = newPosition.y, z = (int)TileType.Floor });
+            previousPosition = newPosition;
+        }
+        return path;
+    }
+
+
 }
 
 public static class Direction2D
