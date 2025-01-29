@@ -1,50 +1,56 @@
-name: Build Unity Project 🛠️
+name: Build Unity Project
 
-on: push
+on:
+  push:
+    branches:
+      - main
 
 jobs:
   build:
-    name: Build Project
+    name: Build Unity WebGL
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Cache Library
+        uses: actions/cache@v3
+        with:
+          path: Library
+          key: Library-${{ runner.os }}-${{ github.sha }}
+          restore-keys: |
+            Library-${{ runner.os }}-
 
       - name: Set up Unity
         uses: game-ci/unity-builder@v2
         with:
           unityVersion: 6000.0.32f1
-          targetPlatform: StandaloneLinux64
-          buildMethod: BuildScript.BuildMazeGeneratorWithWebProfile
+          targetPlatform: WebGL
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
 
-      - name: Upload build
-        uses: actions/upload-artifact@v4
-        with:
-          name: Build
-          path: build
-
-  deploy:
-    name: Deploy to builds branch
-    runs-on: ubuntu-latest
-    needs: build
-
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: builds
-
-      - name: Download build artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: Build
-          path: build
-
-      - name: Commit and push build
+      - name: Run Custom Build Method
         run: |
-          git config --global user.name 'github-actions[bot]'
-          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          mkdir -p Linux
-          mv build/* Linux/
-          git add Linux/
-          git commit -m 'Add new build'
-          git push origin builds
+          xvfb-run --auto-servernum \
+          unity-editor \
+          -quit -batchmode -nographics \
+          -logFile /dev/stdout \
+          -projectPath "$(pwd)" \
+          -executeMethod BuildScript.BuildMazeGenerationWebProfile
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+
+      - name: Move Build to Separate Directory
+        run: |
+          mkdir -p build_output
+          mv Build/* build_output/ || echo "No build files found"
+
+      - name: Commit and Push Build to 'builds' Branch
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -B builds
+          git add build_output
+          git commit -m "New Unity WebGL build"
+          git push origin builds --force
