@@ -10,23 +10,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Unity
+      - name: Activate Unity License
+        uses: game-ci/unity-activate@v2
+        with:
+          unityVersion: 6000.0.32f1
+          activationFile: ${{ secrets.UNITY_LICENSE }}
+
+      - name: Build project
         uses: game-ci/unity-builder@v2
         with:
           unityVersion: 6000.0.32f1
-          license: ${{ secrets.UNITY_LICENSE }}
-
-      - name: Build project
-        run: |
-          mkdir -p build
-          /opt/unity/Editor/Unity \
-            -projectPath . \
-            -buildTarget StandaloneLinux64 \
-            -executeMethod BuildScript.BuildMazeGeneratorWithWebProfile \
-            -quit \
-            -batchmode \
-            -nographics \
-            -logFile build/build.log
+          targetPlatform: StandaloneLinux64
+          buildMethod: BuildScript.BuildMazeGeneratorWithWebProfile
 
       - name: Upload build
         uses: actions/upload-artifact@v4
@@ -58,4 +53,4 @@ jobs:
           mv build/* Linux/
           git add Linux/
           git commit -m 'Add new build'
-          git push origin Builds
+          git push origin builds
