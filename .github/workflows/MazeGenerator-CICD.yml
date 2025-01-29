@@ -16,8 +16,8 @@ jobs:
     - name: Setup Unity
       run: |
         echo "${{ secrets.UNITY_LICENSE }}" > Unity_v2021.x.ulf
-        "C:\Program Files\Unity\Hub\Editor\6000.0.32f1\Editor\Unity.exe" -batchmode -manualLicenseFile Unity_v2021.x.ulf -logfile
+        & "C:\Program Files\Unity\Hub\Editor\6000.0.32f1\Editor\Unity.exe" -batchmode -manualLicenseFile Unity_v2021.x.ulf -logfile
 
     - name: Build project
       run: |
-        "C:\Program Files\Unity\Hub\Editor\6000.0.32f1\Editor\Unity.exe" -quit -batchmode -nographics -logFile -projectPath . -executeMethod BuildScript.BuildMazeGeneratorWithWebProfile
+        & "C:\Program Files\Unity\Hub\Editor\6000.0.32f1\Editor\Unity.exe" -quit -batchmode -nographics -logFile -projectPath . -executeMethod BuildScript.BuildMazeGeneratorWithWebProfile
