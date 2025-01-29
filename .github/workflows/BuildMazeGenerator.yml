@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    name: Build Unity WebGL
+    name: Build Unity Web Profile
     runs-on: ubuntu-latest
 
     steps:
@@ -23,23 +23,21 @@ jobs:
             Library-${{ runner.os }}-
 
       - name: Set up Unity
-        uses: game-ci/unity-builder@v2
+        uses: game-ci/unity-builder@v4.2.3
         with:
           unityVersion: 6000.0.32f1
           targetPlatform: WebGL
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
 
-      - name: Run Custom Build Method
+      - name: Build with Custom Function
         run: |
-          xvfb-run --auto-servernum \
-          unity-editor \
-          -quit -batchmode -nographics \
-          -logFile /dev/stdout \
-          -projectPath "$(pwd)" \
-          -executeMethod BuildScript.BuildMazeGenerationWebProfile
-        env:
-          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          export UNITY_LOG_FILE=$(pwd)/unity_build.log
+          unity-editor -batchmode -nographics -quit \
+            -projectPath $(pwd) \
+            -executeMethod BuildMazeGenerationWebProfile \
+            -logFile $UNITY_LOG_FILE
+          cat $UNITY_LOG_FILE
 
       - name: Move Build to Separate Directory
         run: |
