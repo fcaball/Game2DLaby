@@ -12,9 +12,9 @@ jobs:
       - name: Request manual activation file
         run: |
           mkdir -p ./UnityLicense
-          curl -o ./UnityLicense/Unity_v2021.x.ulf https://license.unity3d.com/manual
+          curl -o ./UnityLicense/Unity_v6000.0.32f1.ulf https://license.unity3d.com/manual
 
       - uses: actions/upload-artifact@v4
         with:
           name: Manual Activation File
-          path: ./UnityLicense/Unity_v2021.x.ulf
+          path: ./UnityLicense/Unity_v6000.0.32f1.ulf
