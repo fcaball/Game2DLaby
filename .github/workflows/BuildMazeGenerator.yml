@@ -11,9 +11,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # Étape 1: Checkout du code
       - name: Checkout Repository
         uses: actions/checkout@v4
 
+      # Étape 2: Cacher les dépendances Unity
       - name: Cache Library
         uses: actions/cache@v3
         with:
@@ -22,6 +24,7 @@ jobs:
           restore-keys: |
             Library-${{ runner.os }}-
 
+      # Étape 3: Installation de Unity
       - name: Set up Unity
         uses: game-ci/unity-builder@v4
         with:
@@ -33,20 +36,29 @@ jobs:
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
           UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
 
-      - name: Build with Custom Function
+      # Étape 4: Vérifier l'installation d'Unity
+      - name: Verify Unity Installation
         run: |
+          /opt/Unity/Editor/Unity -version
+
+      # Étape 5: Lancer le build Unity
+      - name: Build Unity Project
+        run: |
+          echo "Starting the build..."
           export UNITY_LOG_FILE=$(pwd)/unity_build.log
-          unity-builder -batchmode -nographics -quit \
+          /opt/Unity/Editor/Unity -batchmode -nographics -quit \
             -projectPath $(pwd) \
             -executeMethod BuildMazeGenerationWebProfile \
             -logFile $UNITY_LOG_FILE
           cat $UNITY_LOG_FILE
 
+      # Étape 6: Déplacer le build dans un dossier spécifique
       - name: Move Build to Separate Directory
         run: |
           mkdir -p build_output
           mv Build/* build_output/ || echo "No build files found"
 
+      # Étape 7: Commit et Push sur la branche 'builds'
       - name: Commit and Push Build to 'builds' Branch
         run: |
           git config --global user.name "github-actions[bot]"
