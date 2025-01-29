@@ -41,9 +41,9 @@ jobs:
         run: |
           echo "Starting the build..."
           $env:UNITY_LOG_FILE = "$(pwd)\unity_build.log"
-          & "C:\Unity\Editor\Unity.exe" -batchmode -nographics -quit \
-            -projectPath $(pwd) \
-            -executeMethod BuildMazeGenerationWebProfile \
+          & "C:\Unity\Editor\Unity.exe" -batchmode -nographics -quit `
+            -projectPath "$(pwd)" `
+            -executeMethod BuildMazeGenerationWebProfile `
             -logFile $env:UNITY_LOG_FILE
           Get-Content $env:UNITY_LOG_FILE
 
