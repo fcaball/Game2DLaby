@@ -34,14 +34,14 @@ jobs:
       # Étape 4: Vérification de l'installation d'Unity
       - name: Verify Unity Installation
         run: |
-          "C:\Unity\Editor\Unity.exe" -version
+          & "C:\Unity\Editor\Unity.exe" -version
 
       # Étape 5: Lancer le build Unity
       - name: Build Unity Project
         run: |
           echo "Starting the build..."
           $env:UNITY_LOG_FILE = "$(pwd)\unity_build.log"
-          "C:\Unity\Editor\Unity.exe" -batchmode -nographics -quit \
+          & "C:\Unity\Editor\Unity.exe" -batchmode -nographics -quit \
             -projectPath $(pwd) \
             -executeMethod BuildMazeGenerationWebProfile \
             -logFile $env:UNITY_LOG_FILE
