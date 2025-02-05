@@ -2,7 +2,7 @@ name: Unity Build
 
 on:
   workflow_run:
-    workflows: ["Setup Unity"]
+    workflows: ["Setup Unity Project"]
     types:
       - completed
 
