@@ -1,4 +1,4 @@
-name: Unity Build
+name: Setup Unity
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    name: Build Unity Project
+    name: Setup Unity Project
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
