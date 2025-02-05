@@ -30,22 +30,17 @@ jobs:
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
 
-      - name: Install Unity Hub
-        run: |
-          wget https://public-cdn.cloud.unity3d.com/hub/prod/UnityHub.AppImage
-          chmod +x UnityHub.AppImage
-          ./UnityHub.AppImage --no-sandbox &
-
       - name: Install Unity Editor
         run: |
           UNITY_VERSION=6000.0.32f1
-          wget https://download.unity3d.com/download_unity/$(curl -s https://unity3d.com/get-unity/download/archive | grep -oP '(?<=data-version=")[^"]*' | grep $UNITY_VERSION) -O UnityEditor.deb
-          sudo dpkg -i UnityEditor.deb
-          sudo apt-get install -f  # Installer les dépendances manquantes si nécessaire
+          wget https://download.unity3d.com/download_unity/b2e806cf271c/LinuxEditorInstaller/Unity-6000.0.32f1.tar.xz
+          tar -xf Unity-6000.0.32f1.tar.xz -C /opt/
+          sudo ln -s /opt/Unity-6000.0.32f1/Editor/Unity /usr/local/bin/Unity
+          sudo ln -s /opt/Unity-6000.0.32f1/Editor/Unity /usr/local/bin/UnityHub
 
       - name: Build Unity Project
         run: |
-          /opt/Unity/Editor/Unity -batchmode -quit -projectPath $GITHUB_WORKSPACE -buildTarget StandaloneLinux64 -executeMethod BuildScript.PerformBuild
+          /opt/Unity-6000.0.32f1/Editor/Unity -batchmode -quit -projectPath $GITHUB_WORKSPACE -buildTarget StandaloneLinux64 -executeMethod BuildScript.PerformBuild
           
       - name: Cache Build
         uses: actions/cache@v3
