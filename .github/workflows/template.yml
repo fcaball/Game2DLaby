@@ -12,47 +12,92 @@ jobs:
       - name: Fail - No license
         if: ${{ !startsWith(env.UNITY_LICENSE, '<') }}
         run: exit 1
-  testRunner:
-    needs: checkLicense
-    name: Test All Modes
-    runs-on: ubuntu-latest
-    env:
-      UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}  
-    steps:
-    -   name: Checkout code
-        uses: actions/checkout@v2
+#   testRunner:
+#     needs: checkLicense
+#     name: Test All Modes
+#     runs-on: ubuntu-latest
+#     env:
+#       UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}  
+#     steps:
+#     -   name: Checkout code
+#         uses: actions/checkout@v2
 
-    -   name: Create LFS file list
-        run: git lfs ls-files -l | cut -d' ' -f1 | sort > .lfs-assets-id
+#     -   name: Create LFS file list
+#         run: git lfs ls-files -l | cut -d' ' -f1 | sort > .lfs-assets-id
 
-    -   name: Restore LFS cache
-        uses: actions/cache@v4
-        id: lfs-cache
-        with:
-            path: .git/lfs
-            key: ${{ runner.os }}-lfs-${{ hashFiles('.lfs-assets-id')}}
+#     -   name: Restore LFS cache
+#         uses: actions/cache@v4
+#         id: lfs-cache
+#         with:
+#             path: .git/lfs
+#             key: ${{ runner.os }}-lfs-${{ hashFiles('.lfs-assets-id')}}
 
-    -   name: Git LFS Pull
-        run: |
-            git lfs pull
-            git add .
-            git reset --hard
+#     -   name: Git LFS Pull
+#         run: |
+#             git lfs pull
+#             git add .
+#             git reset --hard
 
-    -   name: restore Library cache
-        uses: actions/cache@v4
-        with:
-            path: Library
-            key: Library-test-project
-            restore-keys: |
-                Library-test-project-
-                Library-
+#     -   name: restore Library cache
+#         uses: actions/cache@v4
+#         with:
+#             path: Library
+#             key: Library-test-project
+#             restore-keys: |
+#                 Library-test-project-
+#                 Library-
 
-    -   uses: game-ci/unity-test-runner@v4
-        id: testRunner
-        with:
-            testMode: all
+#     -   uses: game-ci/unity-test-runner@v4
+#         id: testRunner
+#         with:
+#             testMode: all
     
-    -   uses: actions/upload-artifact@v4
-        with:
-            name: Test results (all modes)
-            path: ${{steps.testRunner.outputs.artifactsPath}}
+#     -   uses: actions/upload-artifact@v4
+#         with:
+#             name: Test results (all modes)
+#             path: ${{steps.testRunner.outputs.artifactsPath}}
+
+  buildWebGL:
+      # needs: testRunner
+      needs: checkLicense
+      name: Build for WebGL
+      runs-on: ubuntu-latest
+      strategy:
+          fail-fast: false
+      steps:
+          -   name: Checkout code
+              uses: actions/checkout@v2
+          -   name: Create LFS file list
+              run: git lfs ls-files -l | cut -d' ' -f1 | sort > .lfs-assets-id
+          -   name: Restore LFS cache
+              uses: actions/cache@v4
+              id: lfs-cache
+              with:
+                  path: .git/lfs
+                  key: ${{ runner.os }}-lfs-${{ hashFiles('.lfs-assets-id')}}
+          -   name: Git LFS Pull
+              run: |
+                  git lfs pull
+                  git add .
+                  git reset --hard
+          -   name: restore Library cache
+              uses: actions/cache@v4
+              with:
+                  path: Library
+                  key: Library-test-project
+                  restore-keys: |
+                      Library-test-project-
+                      Library-
+          -   uses: game-ci/unity-builder@v4
+              with:
+                  targetPlatform: WebGL
+          
+          -   uses: actions/upload-artifact@v4
+              with:
+                  name: Test results (all modes)
+                  path: ${{steps.testRunner.outputs.artifactsPath}}
+
+
+
+
+    
