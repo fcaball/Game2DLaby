@@ -1,21 +1,20 @@
-name: Build Unity Project
+name: Unity Build
 
 on:
   push:
     branches:
-      - main
+      - main  # Change cette ligne si ta branche principale a un autre nom
 
 jobs:
   build:
-    name: Build Unity Windows Project
-    runs-on: windows-latest
-
+    name: Build Unity Project
+    runs-on: ubuntu-latest
     steps:
-      # Étape 1: Checkout du code
       - name: Checkout Repository
         uses: actions/checkout@v4
+        with:
+          lfs: true
 
-      # Étape 2: Cacher les dépendances Unity
       - name: Cache Library
         uses: actions/cache@v3
         with:
@@ -24,52 +23,26 @@ jobs:
           restore-keys: |
             Library-${{ runner.os }}-
 
-      # Étape 3: Installer Unity
-      - name: Install Unity
-        run: |
-          Invoke-WebRequest -Uri https://download.unity3d.com/download_unity/b2e806cf271c/Windows64EditorInstaller/UnitySetup64-6000.0.32f1.exe -OutFile UnitySetup64-6000.0.32f1.exe
-          Start-Process -Wait -FilePath UnitySetup64-6000.0.32f1.exe -ArgumentList "/S /D=C:\Unity"
-          Remove-Item -Force UnitySetup64-6000.0.32f1.exe
+      - name: Setup Unity
+        uses: game-ci/unity-builder@v3
+        with:
+          unityVersion: 6000.0.32f1
+          targetPlatform: StandaloneWindows64  # Modifie selon la plateforme de build
 
-      # Étape 4: Vérification de l'installation d'Unity
-      - name: Verify Unity Installation
-        run: |
-          & "C:\Unity\Editor\Unity.exe" -version
+      - name: Upload Build Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: UnityBuild
+          path: build  # Modifie selon ton chemin de sortie
 
-      # Étape 5: Activer la licence Unity
-      - name: Activate Unity License
-        run: |
-          echo ${{ secrets.UNITY_LICENSE }} > "C:\Unity\Editor\Data\Resources\Licensing\client-ulf-file.ulf"
-          & "C:\Unity\Editor\Unity.exe" -batchmode -nographics -quit -logFile "C:\build_logs\unity_build.log"
-
-      # Étape 6: Créer un répertoire pour les logs et lancer le build Unity
-      - name: Prepare for Build
-        run: |
-          New-Item -Path "C:\build_logs" -ItemType Directory -Force
-          echo "Starting the build..."
-          $env:UNITY_LOG_FILE = "C:\build_logs\unity_build.log"
-          & "C:\Unity\Editor\Unity.exe" -batchmode -nographics -quit ` 
-            -projectPath "$(pwd)" `
-            -executeMethod BuildMazeGenerationWindows ` 
-            -logFile $env:UNITY_LOG_FILE
-
-      # Étape 7: Lire le contenu du fichier de log pour obtenir des détails
-      - name: Show Build Log
-        run: |
-          Get-Content "C:\build_logs\unity_build.log"
-
-      # Étape 8: Déplacer le build dans un dossier spécifique
-      - name: Move Build to Separate Directory
-        run: |
-          New-Item -Path build_output -ItemType Directory -Force
-          Move-Item -Path Build\* -Destination build_output\ -Force
-
-      # Étape 9: Commit et Push sur la branche 'builds'
-      - name: Commit and Push Build to 'builds' Branch
+      - name: Deploy to `builds` branch
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git checkout -B builds
-          git add build_output
-          git commit -m "New Unity Windows build"
+          git fetch origin builds || git branch builds
+          git checkout builds
+          rm -rf *
+          mv build/* .
+          git add .
+          git commit -m "Auto-built from commit ${{ github.sha }}"
           git push origin builds --force
