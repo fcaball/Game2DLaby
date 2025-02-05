@@ -2,7 +2,7 @@ name: Unity Build
 
 on:
   workflow_run:
-    workflows: ["BuildMazeGenerator"]
+    workflows: ["Setup Unity"]
     types:
       - completed
 
