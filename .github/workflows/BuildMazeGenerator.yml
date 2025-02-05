@@ -30,3 +30,27 @@ jobs:
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
 
+      - name: Install Unity Hub
+        run: |
+          wget https://public-cdn.cloud.unity3d.com/hub/prod/UnityHub.AppImage
+          chmod +x UnityHub.AppImage
+          ./UnityHub.AppImage --no-sandbox &
+
+      - name: Install Unity Editor
+        run: |
+          UNITY_VERSION=2023.1.0f1
+          wget https://download.unity3d.com/download_unity/$(curl -s https://unity3d.com/get-unity/download/archive | grep -oP '(?<=data-version=")[^"]*' | grep $UNITY_VERSION) -O UnityEditor.deb
+          sudo dpkg -i UnityEditor.deb
+          sudo apt-get install -f  # Installer les dépendances manquantes si nécessaire
+
+      - name: Build Unity Project
+        run: |
+          /opt/Unity/Editor/Unity -batchmode -quit -projectPath $GITHUB_WORKSPACE -buildTarget StandaloneLinux64 -executeMethod BuildScript.PerformBuild
+          
+      - name: Cache Build
+        uses: actions/cache@v3
+        with:
+          path: build
+          key: build-${{ runner.os }}-${{ github.sha }}
+          restore-keys: |
+            build-${{ runner.os }}-
