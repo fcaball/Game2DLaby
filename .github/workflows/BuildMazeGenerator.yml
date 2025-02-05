@@ -30,31 +30,3 @@ jobs:
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
 
-      - name: Clean Git Status
-        run: |
-          git reset --hard  # Annule les fichiers modifiés non commit
-          git clean -fd     # Supprime les fichiers non suivis
-
-      - name: Setup Unity
-        uses: game-ci/unity-builder@v3
-        with:
-          unityVersion: 6000.0.32f1
-          targetPlatform: StandaloneWindows64
-
-      - name: Upload Build Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: UnityBuild
-          path: build
-
-      - name: Deploy to `builds` branch
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git fetch origin builds || git branch builds
-          git checkout builds
-          rm -rf *
-          mv build/* .
-          git add .
-          git commit -m "Auto-built from commit ${{ github.sha }}"
-          git push origin builds --force
