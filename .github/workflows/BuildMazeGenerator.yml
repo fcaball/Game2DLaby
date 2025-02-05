@@ -3,7 +3,7 @@ name: Unity Build
 on:
   push:
     branches:
-      - main  # Change cette ligne si ta branche principale a un autre nom
+      - main
 
 jobs:
   build:
@@ -23,17 +23,24 @@ jobs:
           restore-keys: |
             Library-${{ runner.os }}-
 
+      - name: Activate Unity License
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+        run: |
+          echo "$UNITY_LICENSE" | base64 --decode > Unity.ulf
+          echo "License activated"
+
       - name: Setup Unity
         uses: game-ci/unity-builder@v3
         with:
           unityVersion: 6000.0.32f1
-          targetPlatform: StandaloneWindows64  # Modifie selon la plateforme de build
+          targetPlatform: StandaloneWindows64
 
       - name: Upload Build Artifact
         uses: actions/upload-artifact@v4
         with:
           name: UnityBuild
-          path: build  # Modifie selon ton chemin de sortie
+          path: build
 
       - name: Deploy to `builds` branch
         run: |
