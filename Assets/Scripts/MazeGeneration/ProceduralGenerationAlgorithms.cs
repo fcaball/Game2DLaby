@@ -52,7 +52,7 @@ public static class ProceduralGenerationAlgorithms
 
 public static class Direction2D
 {
-    public static List<Vector3Int> cardinalDirection2D = new(){
+    public static List<Vector3Int> CardinalDirection2D = new(){
         new Vector3Int(0,1,0),//up
         new Vector3Int(0,-1,0),//down
         new Vector3Int(1,0,0),//right
@@ -61,6 +61,6 @@ public static class Direction2D
 
     public static Vector3Int GetRandomDirection()
     {
-        return cardinalDirection2D[Random.Range(0, cardinalDirection2D.Count)];
+        return CardinalDirection2D[Random.Range(0, CardinalDirection2D.Count)];
     }
 }

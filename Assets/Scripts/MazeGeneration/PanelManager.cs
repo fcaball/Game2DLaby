@@ -3,18 +3,18 @@ using UnityEngine.UI;
 
 public class PanelManager : MonoBehaviour
 {
-    private Image raycastBlocker;
+    private Image _raycastBlocker;
     private void Start() {
-        raycastBlocker=GetComponent<Image>();
+        _raycastBlocker=GetComponent<Image>();
         
     }
     public void DisplayPanel(GameObject panel){
         panel.SetActive(true);
-        raycastBlocker.raycastTarget=true;
+        _raycastBlocker.raycastTarget=true;
     }
 
     public void UnDisplayPanel(GameObject panel){
         panel.SetActive(false);
-        raycastBlocker.raycastTarget=false;
+        _raycastBlocker.raycastTarget=false;
     }
 }

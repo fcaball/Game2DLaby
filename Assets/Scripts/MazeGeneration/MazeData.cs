@@ -6,8 +6,8 @@ using UnityEngine.Tilemaps;
 public class MazeData : MonoBehaviour
 {
     // Liste statique qui va contenir les différentes données de chaque étage du labyrinthe
-    public static List<FloorData> mazeFloors = new();
-    [SerializeField] private string fileNameWithExtension;
+    public static List<FloorData> MazeFloors = new();
+    [SerializeField] private string _fileNameWithExtension;
 
     public void Awake()
     {
@@ -18,18 +18,48 @@ public class MazeData : MonoBehaviour
     // Fonction pour charger les données depuis un fichier JSON
     public void LoadData()
     {
-        string filePath = Path.Combine(Application.persistentDataPath, fileNameWithExtension);
 
-        if (File.Exists(filePath) && File.ReadAllText(filePath)!="")
+        string filePath = Path.Combine(Application.persistentDataPath, _fileNameWithExtension);
+
+        if (File.Exists(filePath) && File.ReadAllText(filePath) != "")
         {
             string json = File.ReadAllText(filePath);
             // Désérialiser le JSON en une liste de FloorData
-            mazeFloors = JsonUtility.FromJson<MazeDataWrapper>(json).floors;
+            MazeFloors = JsonUtility.FromJson<MazeDataWrapper>(json).Floors;
             Debug.Log("Données chargées avec succès.");
-            if (mazeFloors == null)
+            MazeFloors ??= new()
             {
-                mazeFloors = new();
-            }
+
+                        new() {
+                            Name = "Default",
+                            EntreeSorties = new List<InOut>(),
+                            TileMap = new List<Vector3Int>(){
+                                new(){
+                                    x=0,
+                                    y=0,
+                                    z=(int) TileType.Floor
+                                }
+                            }
+                        }
+
+            };
+
+            MazeFloors=MazeFloors.Count==0?  new()
+            {
+
+                        new() {
+                            Name = "Default",
+                            EntreeSorties = new List<InOut>(),
+                            TileMap = new List<Vector3Int>(){
+                                new(){
+                                    x=0,
+                                    y=0,
+                                    z=(int) TileType.Floor
+                                }
+                            }
+                        }
+
+            }:MazeFloors;
         }
         else
         {
@@ -38,12 +68,12 @@ public class MazeData : MonoBehaviour
             // Créer un contenu par défaut
             MazeDataWrapper defaultData = new()
             {
-                floors = new List<FloorData>()
+                Floors = new List<FloorData>()
                     {
                         new() {
-                            name = "Default",
-                            entreeSorties = new List<InOut>(),
-                            tileMap = new List<Vector3Int>(){
+                            Name = "Default",
+                            EntreeSorties = new List<InOut>(),
+                            TileMap = new List<Vector3Int>(){
                                 new(){
                                     x=0,
                                     y=0,
@@ -54,7 +84,7 @@ public class MazeData : MonoBehaviour
                     }
             };
 
-            mazeFloors.Add(defaultData.floors[0]);
+            MazeFloors.Add(defaultData.Floors[0]);
 
             // Sérialiser l'objet en JSON
             string defaultJson = JsonUtility.ToJson(defaultData, true);
@@ -73,9 +103,9 @@ public class MazeData : MonoBehaviour
     // Fonction pour sauvegarder les données dans un fichier JSON
     public void SaveData()
     {
-        string filePath = Path.Combine(Application.persistentDataPath, fileNameWithExtension);
+        string filePath = Path.Combine(Application.persistentDataPath, _fileNameWithExtension);
         MazeDataWrapper dataWrapper = new MazeDataWrapper();
-        dataWrapper.floors = mazeFloors;
+        dataWrapper.Floors = MazeFloors;
 
         string json = JsonUtility.ToJson(dataWrapper, true);
         File.WriteAllText(filePath, json);
@@ -86,16 +116,16 @@ public class MazeData : MonoBehaviour
     [System.Serializable]
     public class MazeDataWrapper
     {
-        public List<FloorData> floors = new();
+        public List<FloorData> Floors = new();
     }
 }
 
 [System.Serializable]
 public class FloorData
 {
-    public List<Vector3Int> tileMap = new();
-    public string name;
-    public List<InOut> entreeSorties = new();
+    public List<Vector3Int> TileMap = new();
+    public string Name;
+    public List<InOut> EntreeSorties = new();
 
 }
 
@@ -103,25 +133,25 @@ public class FloorData
 [System.Serializable]
 public class InOut
 {
-    public List<TileData> locations = new();
-    public int indexFloorDestination;
+    public List<TileData> Locations = new();
+    public int IndexFloorDestination;
 }
 
 public enum TileType
 {
-    Floor=0,
-    StraightVerticalWall=1,
-    StraightHorizontalWall=2,
-    CornerTopLeftWall=3,
-    CornerDownLeftWall=4,
-    CornerTopRightWall=5,
-    CornerDownRightWall=6,
-    ConnexionLeftTopRightWall=7,
-    ConnexionRightDownLeftWall=8,
-    ConnexionTopLeftDownWall=9,
-    ConnexionTopRightDownWall=10,
-    ConnexionAllDirectionsWall=11,
+    Floor = 0,
+    StraightVerticalWall = 1,
+    StraightHorizontalWall = 2,
+    CornerTopLeftWall = 3,
+    CornerDownLeftWall = 4,
+    CornerTopRightWall = 5,
+    CornerDownRightWall = 6,
+    ConnexionLeftTopRightWall = 7,
+    ConnexionRightDownLeftWall = 8,
+    ConnexionTopLeftDownWall = 9,
+    ConnexionTopRightDownWall = 10,
+    ConnexionAllDirectionsWall = 11,
 
-    
+
 }
- 
+
