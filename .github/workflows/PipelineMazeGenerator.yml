@@ -40,12 +40,12 @@ jobs:
 
       - name: Push Build to 'builds' branch
         run: |
-          git config --global user.name "GitHub Actions"
-          git config --global user.email "actions@github.com"
-          git fetch origin
-          git checkout builds || git checkout -b builds
-          git pull origin builds
-          git add Builds/WEB
-          git commit -m "Mise à jour du build WebGL"
-          git push origin builds
+            git config --global user.name "GitHub Actions"
+            git config --global user.email "actions@github.com"
+            git fetch origin
+            git checkout -b builds origin/builds || git checkout -b builds
+            git add Builds/WEB
+            git commit -m "Mise à jour du build WebGL" || echo "Aucun fichier à committer"
+            git push origin builds
+
 
