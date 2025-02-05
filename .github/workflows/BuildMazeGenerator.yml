@@ -38,7 +38,7 @@ jobs:
 
       - name: Install Unity Editor
         run: |
-          UNITY_VERSION=2023.1.0f1
+          UNITY_VERSION=6000.0.32f1
           wget https://download.unity3d.com/download_unity/$(curl -s https://unity3d.com/get-unity/download/archive | grep -oP '(?<=data-version=")[^"]*' | grep $UNITY_VERSION) -O UnityEditor.deb
           sudo dpkg -i UnityEditor.deb
           sudo apt-get install -f  # Installer les dépendances manquantes si nécessaire
