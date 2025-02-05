@@ -95,11 +95,12 @@ jobs:
                 UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
             with:
                 targetPlatform: WebGL
+                path: build/MazeGeneratorForWegGL
                 
           -   uses: actions/upload-artifact@v4
               with:
-                  name: Test results (all modes)
-                  path: ${{steps.testRunner.outputs.artifactsPath}}
+                  name: Runner
+                  path: build/MazeGeneratorForWegGL
 
 
 
