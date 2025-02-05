@@ -31,12 +31,12 @@ jobs:
 
       - uses: game-ci/unity-builder@v4
         env:
-          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
-          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
-          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+            UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+            UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+            UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
-          targetPlatform: ${{ matrix.targetPlatform }}
-          customParameters: "-executeMethod BuildScript.BuildMazeGeneratorWithWebProfile"
+            targetPlatform: WebGL
+            buildMethod: BuildScript.BuildMazeGeneratorWithWebProfile
 
       - name: Push Build to 'builds' branch
         run: |
