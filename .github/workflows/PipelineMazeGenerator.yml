@@ -38,14 +38,22 @@ jobs:
             targetPlatform: WebGL
             buildMethod: BuildScript.BuildMazeGeneratorWithWebProfile
 
-      - name: Push Build to 'builds' branch
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Build-${{ matrix.targetPlatform }}
+          path: build/${{ matrix.targetPlatform }}
+
+      - name: Get Version and Update Server
+        
         run: |
-            git config --global user.name "GitHub Actions"
-            git config --global user.email "actions@github.com"
-            git fetch origin
-            git checkout -b builds origin/builds || git checkout -b builds
-            git add Builds/WEB
-            git commit -m "Mise à jour du build WebGL" || echo "Aucun fichier à committer"
-            git push origin builds
+          # Lire la version depuis le fichier généré par Unity
+          VERSION=$(cat build/version.txt)
 
+          # URL du serveur où est hébergé le script PHP
+          API_URL="https://fabiencaballero.fr/MazeGenerator/version.php"
 
+          # Récupérer l'URL de l'artifact
+          ARTIFACT_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts"
+
+          # Mettre à jour la version et le lien sur le serveur
+          curl -X GET "$API_URL?version=$VERSION&link=$ARTIFACT_URL"

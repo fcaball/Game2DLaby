@@ -1,4 +1,4 @@
-using System.Diagnostics;
+using System.IO;
 using UnityEditor;
 using UnityEditor.Build.Profile;
 using UnityEditor.Build.Reporting;
@@ -10,13 +10,14 @@ public class BuildScript
     {
         // Charger le profil de build
         var bp = AssetDatabase.LoadAssetAtPath<BuildProfile>("Assets/Settings/Build Profiles/MazeGenerator-Web.asset");
-        BuildProfile.SetActiveBuildProfile(bp);
-        BuildPlayerWithProfileOptions options = new ()
+        PlayerSettings.bundleVersion = IncrementBuildVersion(); // 🔹 Met à jour la version ici
+        BuildPlayerWithProfileOptions options = new()
         {
             buildProfile = bp,
             locationPathName = "Builds/WEB/",
-            options = BuildOptions.None
+            options = BuildOptions.None,
         };
+
 
         // Lancer le build
         BuildReport report = BuildPipeline.BuildPlayer(options);
@@ -24,47 +25,28 @@ public class BuildScript
 
         if (summary.result == BuildResult.Succeeded)
         {
-            UnityEngine.Debug.Log($"✅ Build réussi : {summary.totalSize} bytes");
-
-            // Ajouter le build à Git et le pousser sur la branche "builds"
-            CommitAndPushBuild();
+            Debug.Log($"✅ Build réussi : {summary.totalSize} bytes");
+            string version = PlayerSettings.bundleVersion;
+            File.WriteAllText("build/version.txt", version);
         }
         else
         {
-            UnityEngine.Debug.LogError("❌ Build échoué !");
+            Debug.LogError("❌ Build échoué !");
         }
+
     }
 
-   private static void CommitAndPushBuild()
-{
-    RunGitCommand("git fetch origin");  // Met à jour la liste des branches
-    RunGitCommand("git checkout builds || git checkout -b builds");  // Bascule sur builds ou la crée si elle n'existe pas
-    RunGitCommand("git pull origin builds");  // Récupère les derniers changements
-    RunGitCommand("git add Builds/WEB");  // Ajoute le nouveau build
-    RunGitCommand("git commit -m \"Mise à jour du build WebGL\"");  // Nouveau commit
-    RunGitCommand("git push origin builds");  // Pousse le commit sans écraser
-    UnityEngine.Debug.Log("📌 Build ajouté à la branche 'builds' !");
-}
-
-    private static void RunGitCommand(string command)
+    static string IncrementBuildVersion()
     {
-        ProcessStartInfo psi = new ProcessStartInfo
+        string currentVersion = PlayerSettings.bundleVersion;
+        string[] parts = currentVersion.Split('.');
+
+        if (parts.Length == 3 && int.TryParse(parts[2], out int patchVersion))
         {
-            FileName = "bash",
-            Arguments = $"-c \"{command}\"",
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-            UseShellExecute = false,
-            CreateNoWindow = true
-        };
-
-        using Process process = Process.Start(psi);
-        process.WaitForExit();
-
-        string output = process.StandardOutput.ReadToEnd();
-        string error = process.StandardError.ReadToEnd();
-        
-        if (!string.IsNullOrEmpty(output)) UnityEngine.Debug.Log(output);
-        if (!string.IsNullOrEmpty(error)) UnityEngine.Debug.LogError(error);
+            patchVersion++;
+            string newVersion = $"{parts[0]}.{parts[1]}.{patchVersion}";
+            return newVersion;
+        }
+        return currentVersion;
     }
 }
