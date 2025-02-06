@@ -47,19 +47,29 @@ jobs:
     name: Deploy on Personal server
     runs-on: ubuntu-latest
     needs: buildForAllSupportedPlatforms
-    strategy:
-      fail-fast: false
     steps:
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: Build-WebGL
+          path: build
+
       - name: Get Version and Update Server
         run: |
-          # Lire la version depuis le fichier généré par Unity
+          # Vérifier si le fichier version.txt existe
+          if [ ! -f build/version.txt ]; then
+            echo "❌ ERREUR: Le fichier build/version.txt est introuvable !"
+            exit 1
+          fi
+
+          # Lire la version depuis le fichier
           VERSION=$(cat build/version.txt)
-
-          # URL du serveur où est hébergé le script PHP
+          
+          # URL de mise à jour
           API_URL="https://fabiencaballero.fr/MazeGenerator/version.php"
-
-          # Récupérer l'URL de l'artifact
-          ARTIFACT_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts"
+          
+          # Récupération de l'URL de l'artifact (via l'API GitHub)
+          ARTIFACT_URL="https://nightly.link/${{ github.repository }}/actions/runs/${{ github.run_id }}/Build-WebGL.zip"
 
           # Mettre à jour la version et le lien sur le serveur
           curl -X GET "$API_URL?version=$VERSION&link=$ARTIFACT_URL"
