@@ -43,8 +43,14 @@ jobs:
           name: Build-${{ matrix.targetPlatform }}
           path: build/${{ matrix.targetPlatform }}
 
+  deployOnPersonalServer:
+    name: Deploy on Personal server
+    runs-on: ubuntu-latest
+    needs: buildForAllSupportedPlatforms
+    strategy:
+      fail-fast: false
+    steps:
       - name: Get Version and Update Server
-        
         run: |
           # Lire la version depuis le fichier généré par Unity
           VERSION=$(cat build/version.txt)
