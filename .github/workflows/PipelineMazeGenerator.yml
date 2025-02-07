@@ -1,6 +1,6 @@
 name: Build MazeGenerator
 
-on: [push, pull_request]
+on: push
 
 permissions:
   contents: write  # Autorise les pushs vers GitHub
@@ -15,33 +15,48 @@ jobs:
         targetPlatform:
           - WebGL # WebGL.
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
           lfs: true
 
-      - uses: actions/cache@v3
+      - name: Free disk space
+        uses: jlumbroso/free-disk-space@v1.3.1
+
+      - name: Check disk usage before build
+        run: df -h
+
+      - name: Cache Library folder
+        uses: actions/cache@v3
         with:
           path: Library
           key: Library-${{ matrix.targetPlatform }}
           restore-keys: Library-
 
-      - if: matrix.targetPlatform == 'Android'
-        uses: jlumbroso/free-disk-space@v1.3.1
-
-      - uses: game-ci/unity-builder@v4
+      - name: Build with Unity
+        uses: game-ci/unity-builder@v4
+        timeout-minutes: 50  # Augmente le timeout à 50 min
         env:
-            UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
-            UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
-            UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
-            targetPlatform: WebGL
-            buildMethod: BuildScript.BuildMazeGeneratorWithWebProfile
+          targetPlatform: WebGL
+          buildMethod: BuildScript.BuildMazeGeneratorWithWebProfile
 
-      - uses: actions/upload-artifact@v4
+      - name: Upload Build Artifact
+        uses: actions/upload-artifact@v4
         with:
           name: Build-${{ matrix.targetPlatform }}
           path: build/${{ matrix.targetPlatform }}
+
+      - name: Upload Unity logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Unity-Logs
+          path: Library/Logs/Unity
 
   deployOnPersonalServer:
     name: Deploy on Personal server
@@ -64,10 +79,10 @@ jobs:
 
           # Lire la version depuis le fichier
           VERSION=$(cat build/version.txt)
-          
+
           # URL de mise à jour
           API_URL="https://fabiencaballero.fr/MazeGenerator/version.php"
-          
+
           # Récupération de l'URL de l'artifact (via l'API GitHub)
           ARTIFACT_URL="https://nightly.link/${{ github.repository }}/actions/runs/${{ github.run_id }}/Build-WebGL.zip"
 
