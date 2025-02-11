@@ -70,22 +70,29 @@ jobs:
           path: build
 
 
-      - name: Get Artifact ID
-        id: get_artifact_id
+      - name: Get Artifact ID (Retry)
         run: |
           API_URL="https://api.github.com/repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts"
           
           echo "Fetching artifact ID from $API_URL"
 
-          ARTIFACT_ID=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "$API_URL" | jq -r '.artifacts[] | select(.name=="Build-WebGL") | .id')
+          for i in {1..5}; do
+            RESPONSE=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "$API_URL")
+            ARTIFACT_ID=$(echo "$RESPONSE" | jq -r '.artifacts[] | select(.name=="Build-WebGL") | .id')
 
-          if [ -z "$ARTIFACT_ID" ]; then
-            echo "❌ Impossible de récupérer l'ID de l'artifact !"
-            exit 1
-          fi
+            if [ -n "$ARTIFACT_ID" ] && [ "$ARTIFACT_ID" != "null" ]; then
+              echo "✅ Artifact ID trouvé : $ARTIFACT_ID"
+              echo "ARTIFACT_ID=$ARTIFACT_ID" >> "$GITHUB_ENV"
+              exit 0
+            fi
 
-          echo "Artifact ID récupéré : $ARTIFACT_ID"
-          echo "ARTIFACT_ID=$ARTIFACT_ID" >> "$GITHUB_ENV"
+            echo "⏳ Artifact introuvable... nouvelle tentative dans 10 secondes ($i/5)"
+            sleep 10
+          done
+
+          echo "❌ Impossible de récupérer l'ID de l'artifact après 5 essais."
+          exit 1
+
 
       - name: Get Version and Update Server
         run: |
