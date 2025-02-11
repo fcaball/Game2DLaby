@@ -43,6 +43,7 @@ jobs:
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
           targetPlatform: WebGL
+          buildsPath: Builds/WEB/
           buildMethod: BuildScript.BuildMazeGeneratorWithWebProfile
 
       - name: Upload Build Artifact
