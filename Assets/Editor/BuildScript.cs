@@ -14,7 +14,6 @@ public class BuildScript
         BuildPlayerWithProfileOptions options = new()
         {
             buildProfile = bp,
-            locationPathName = "build",
             options = BuildOptions.None,
         };
 

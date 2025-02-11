@@ -48,7 +48,7 @@ jobs:
       - name: Upload Build Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Build-WebGL
+          name: Build-${{ matrix.targetPlatform }}
           path: build
 
       - name: Upload Unity logs on failure
