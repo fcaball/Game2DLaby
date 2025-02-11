@@ -84,7 +84,7 @@ jobs:
           API_URL="https://fabiencaballero.fr/MazeGenerator/version.php"
 
           # Récupération de l'URL de l'artifact (via l'API GitHub)
-          ARTIFACT_URL="https://nightly.link/${{ github.repository }}/actions/runs/${{ github.run_id }}/Build-WebGL.zip"
+          ARTIFACT_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts/${{ steps.upload.outputs.artifact_id }}"
 
           # Mettre à jour la version et le lien sur le serveur
           curl -X GET "$API_URL?version=$VERSION&link=$ARTIFACT_URL"
