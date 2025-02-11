@@ -67,8 +67,8 @@ jobs:
       - name: Download build artifact
         uses: actions/download-artifact@v4
         with:
-          name: Build-${{ matrix.targetPlatform }}
-          path: build
+          name: Build-StandaloneWindows64
+          path: Builds/Windows
 
 
       - name: Get Artifact ID (Retry)
