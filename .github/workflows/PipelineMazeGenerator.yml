@@ -3,6 +3,7 @@ name: Build MazeGenerator
 on: push
 
 permissions:
+  actions: read  # Autorise l'accès aux artifacts
   contents: write  # Autorise les pushs vers GitHub
 
 jobs:
