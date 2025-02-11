@@ -79,7 +79,7 @@ jobs:
 
           for i in {1..5}; do
             RESPONSE=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "$API_URL")
-            ARTIFACT_ID=$(echo "$RESPONSE" | jq -r '.artifacts[] | select(.name=="Build-${{ matrix.targetPlatform }}") | .id')
+            ARTIFACT_ID=$(echo "$RESPONSE" | jq -r '.artifacts[] | select(.name=="Build-StandaloneWindows64") | .id')
 
             if [ -n "$ARTIFACT_ID" ] && [ "$ARTIFACT_ID" != "null" ]; then
               echo "✅ Artifact ID trouvé : $ARTIFACT_ID"
