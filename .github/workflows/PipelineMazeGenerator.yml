@@ -43,14 +43,13 @@ jobs:
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
           targetPlatform: WebGL
-          buildsPath: Builds/WEB/
           buildMethod: BuildScript.BuildMazeGeneratorWithWebProfile
 
       - name: Upload Build Artifact
         uses: actions/upload-artifact@v4
         with:
           name: Build-WebGL
-          path: Builds/WEB/
+          path: build
 
       - name: Upload Unity logs on failure
         if: failure()
