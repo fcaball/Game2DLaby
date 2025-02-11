@@ -7,33 +7,48 @@ using UnityEngine;
 public class BuildScript
 {
     public static void BuildMazeGeneratorWithWebProfile()
+{
+    // Charger le profil de build
+    var bp = AssetDatabase.LoadAssetAtPath<BuildProfile>("Assets/Settings/Build Profiles/MazeGenerator-Web.asset");
+    PlayerSettings.bundleVersion = IncrementBuildVersion(); // 🔹 Met à jour la version ici
+
+    // Définir le chemin de sortie
+    string buildPath = "Builds/WEB"; // Le répertoire où le build sera sauvegardé
+    if (!Directory.Exists(buildPath))
     {
-        // Charger le profil de build
-        var bp = AssetDatabase.LoadAssetAtPath<BuildProfile>("Assets/Settings/Build Profiles/MazeGenerator-Web.asset");
-        PlayerSettings.bundleVersion = IncrementBuildVersion(); // 🔹 Met à jour la version ici
-        BuildPlayerWithProfileOptions options = new()
-        {
-            buildProfile = bp,
-            options = BuildOptions.None,
-        };
-
-
-        // Lancer le build
-        BuildReport report = BuildPipeline.BuildPlayer(options);
-        BuildSummary summary = report.summary;
-
-        if (summary.result == BuildResult.Succeeded)
-        {
-            Debug.Log($"✅ Build réussi : {summary.totalSize} bytes");
-            string version = PlayerSettings.bundleVersion;
-            File.WriteAllText("Builds/WEB/version.txt", version);
-        }
-        else
-        {
-            Debug.LogError("❌ Build échoué !");
-        }
-
+        Directory.CreateDirectory(buildPath); // Créer le répertoire s'il n'existe pas
     }
+
+    BuildPlayerWithProfileOptions options = new()
+    {
+        buildProfile = bp,
+        options = BuildOptions.None,
+    };
+
+    string[] scenes = new string[] { "Assets/Scenes/MazeGenerator.unity" }; // Exemple de scène
+
+    // Lancer le build
+    BuildReport report = BuildPipeline.BuildPlayer(scenes,buildPath,BuildTarget.WebGL,BuildOptions.None);
+    BuildSummary summary = report.summary;
+
+    if (summary.result == BuildResult.Succeeded)
+    {
+        Debug.Log($"✅ Build réussi : {summary.totalSize} bytes");
+        string version = PlayerSettings.bundleVersion;
+
+        // Sauvegarder la version dans un fichier texte dans le dossier de build
+        File.WriteAllText($"{buildPath}/version.txt", version);
+
+        // Assurer que l'artifact est dans le dossier correct
+        string artifactPath = $"{buildPath}/index.html"; // Exemple de fichier généré pour WebGL
+        Debug.Log($"Build créé à : {artifactPath}");
+    }
+    else
+    {
+        Debug.LogError("❌ Build échoué !");
+    }
+}
+
 
     static string IncrementBuildVersion()
     {
