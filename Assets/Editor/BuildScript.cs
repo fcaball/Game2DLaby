@@ -27,7 +27,7 @@ public class BuildScript
         {
             Debug.Log($"✅ Build réussi : {summary.totalSize} bytes");
             string version = PlayerSettings.bundleVersion;
-            File.WriteAllText("build/version.txt", version);
+            File.WriteAllText("Builds/WEB/version.txt", version);
         }
         else
         {
