@@ -13,7 +13,7 @@ public class BuildScript
     PlayerSettings.bundleVersion = IncrementBuildVersion(); // 🔹 Met à jour la version ici
 
     // Définir le chemin de sortie
-    string buildPath = "Builds/WEB"; // Le répertoire où le build sera sauvegardé
+    string buildPath = "Builds/Windows"; // Le répertoire où le build sera sauvegardé
     if (!Directory.Exists(buildPath))
     {
         Directory.CreateDirectory(buildPath); // Créer le répertoire s'il n'existe pas
@@ -28,7 +28,7 @@ public class BuildScript
     string[] scenes = new string[] { "Assets/Scenes/MazeGenerator.unity" }; // Exemple de scène
 
     // Lancer le build
-    BuildReport report = BuildPipeline.BuildPlayer(scenes,buildPath,BuildTarget.WebGL,BuildOptions.None);
+    BuildReport report = BuildPipeline.BuildPlayer(scenes,buildPath,BuildTarget.StandaloneWindows,BuildOptions.None);
     BuildSummary summary = report.summary;
 
     if (summary.result == BuildResult.Succeeded)
