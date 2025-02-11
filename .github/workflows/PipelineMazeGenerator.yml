@@ -69,6 +69,24 @@ jobs:
           name: Build-WebGL
           path: build
 
+
+      - name: Get Artifact ID
+        id: get_artifact_id
+        run: |
+          API_URL="https://api.github.com/repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts"
+          
+          echo "Fetching artifact ID from $API_URL"
+
+          ARTIFACT_ID=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "$API_URL" | jq -r '.artifacts[] | select(.name=="Build-WebGL") | .id')
+
+          if [ -z "$ARTIFACT_ID" ]; then
+            echo "❌ Impossible de récupérer l'ID de l'artifact !"
+            exit 1
+          fi
+
+          echo "Artifact ID récupéré : $ARTIFACT_ID"
+          echo "ARTIFACT_ID=$ARTIFACT_ID" >> "$GITHUB_ENV"
+
       - name: Get Version and Update Server
         run: |
           # Vérifier si le fichier version.txt existe
@@ -83,8 +101,10 @@ jobs:
           # URL de mise à jour
           API_URL="https://fabiencaballero.fr/MazeGenerator/version.php"
 
-          # Récupération de l'URL de l'artifact (via l'API GitHub)
-          ARTIFACT_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts/${{ steps.upload.outputs.artifact_id }}"
+          # Construire l'URL de téléchargement de l'artifact
+          ARTIFACT_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts/${{ env.ARTIFACT_ID }}"
+
+          echo "🔗 Artifact URL: $ARTIFACT_URL"
 
           # Mettre à jour la version et le lien sur le serveur
           curl -X GET "$API_URL?version=$VERSION&link=$ARTIFACT_URL"
