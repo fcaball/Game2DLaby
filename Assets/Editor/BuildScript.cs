@@ -13,7 +13,7 @@ public class BuildScript
     PlayerSettings.bundleVersion = IncrementBuildVersion(); // 🔹 Met à jour la version ici
 
     // Définir le chemin de sortie
-    string buildPath = "Builds/Windows"; // Le répertoire où le build sera sauvegardé
+    string buildPath = "MazeBuilds/Windows"; // Le répertoire où le build sera sauvegardé
     if (!Directory.Exists(buildPath))
     {
         Directory.CreateDirectory(buildPath); // Créer le répertoire s'il n'existe pas

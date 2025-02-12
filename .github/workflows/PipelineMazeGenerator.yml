@@ -50,7 +50,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: Build-${{ matrix.targetPlatform }}
-          path: Builds/Windows 
+          path: MazeBuilds/Windows 
 
       - name: Upload Unity logs on failure
         if: failure()
@@ -68,7 +68,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: Build-StandaloneWindows
-          path: Builds/Windows
+          path: MazeBuilds/Windows
 
       - name: Get Artifact ID (Retry)
         run: |
@@ -96,12 +96,12 @@ jobs:
 
       - name: Get Version and Update Server
         run: |
-          if (!(Test-Path -Path "build/version.txt")) {
-              Write-Host "❌ ERREUR: Le fichier build/version.txt est introuvable !"
+          if (!(Test-Path -Path "MazeBuilds/Windows/version.txt")) {
+              Write-Host "❌ ERREUR: Le fichier MazeBuilds/Windows/version.txt est introuvable !"
               exit 1
           }
 
-          $VERSION = Get-Content build/version.txt -Raw
+          $VERSION = Get-Content MazeBuilds/Windows/version.txt -Raw
           $API_URL = "https://fabiencaballero.fr/MazeGenerator/version.php"
 
           $ARTIFACT_URL = "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts/${{ env.ARTIFACT_ID }}"
