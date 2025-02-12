@@ -28,7 +28,7 @@ public class BuildScript
     string[] scenes = new string[] { "Assets/Scenes/MazeGenerator.unity" }; // Exemple de scène
 
     // Lancer le build
-    BuildReport report = BuildPipeline.BuildPlayer(scenes,buildPath,BuildTarget.StandaloneWindows,BuildOptions.None);
+    BuildReport report = BuildPipeline.BuildPlayer(scenes,buildPath,BuildTarget.StandaloneWindows64,BuildOptions.None);
     BuildSummary summary = report.summary;
 
     if (summary.result == BuildResult.Succeeded)
