@@ -99,39 +99,38 @@ jobs:
 
       - name: Get Version and Update Server
         run: |
-          if (!(Test-Path -Path "MazeBuilds/Windows/version.txt")) {
+         if (!(Test-Path -Path "MazeBuilds/Windows/version.txt")) {
               Write-Host "❌ ERREUR: Le fichier MazeBuilds/Windows/version.txt est introuvable !"
               exit 1
           }
 
-          # Lire et nettoyer la version
+          # Lire la version depuis le fichier
           $VERSION = Get-Content MazeBuilds/Windows/version.txt -Raw
-          $VERSION = $VERSION.Trim()  # 🔹 Supprimer les espaces et sauts de ligne
-          if (-not $VERSION) {
-              Write-Host "❌ ERREUR: La version est vide !"
-              exit 1
-          }
+          $VERSION = $VERSION.Trim()  # Nettoyage des espaces et sauts de ligne
 
-          # Définir l'API et l'URL de l'artifact
           $API_URL = "https://fabiencaballero.fr/MazeGenerator/version.php"
-          $ARTIFACT_URL = "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts/${{ env.ARTIFACT_ID }}"
 
-          # 🚀 Encodage des paramètres
-          $ENCODED_VERSION = [System.Uri]::EscapeDataString($VERSION)
-          $ENCODED_ARTIFACT_URL = [System.Uri]::EscapeDataString($ARTIFACT_URL)
+          # Construire l'URL de l'artifact
+          $ARTIFACT_URL = "https://github.com/fcaball/Game2DLaby/actions/runs/${{ github.run_id }}/artifacts/${{ env.ARTIFACT_ID }}"
 
-          # Construire l'URL finale correctement
-          $FULL_URL = "$API_URL?version=$ENCODED_VERSION&link=$ENCODED_ARTIFACT_URL"
-
+          # Afficher les valeurs pour debug
           Write-Host "🔗 URL de l'artifact : $ARTIFACT_URL"
-          Write-Host "🌍 URL Finale Encodée : $FULL_URL"
+          Write-Host "📌 Version détectée : '$VERSION'"
 
-          # Vérification de l'URL finale avant l'envoi
-          if ($FULL_URL -match "^https?://") {
+          # Construire l'URL finale
+          $FULL_URL = "$API_URL?version=$VERSION&link=$ARTIFACT_URL"
+
+          Write-Host "🌍 URL Finale : $FULL_URL"
+
+          # Envoyer la requête
+          try {
               Invoke-WebRequest -Uri $FULL_URL -Method Get
-          } else {
-              Write-Host "❌ ERREUR: L'URL finale est invalide !"
+              Write-Host "✅ Mise à jour envoyée avec succès !"
+          } catch {
+              Write-Host "❌ ERREUR: Impossible d'envoyer la requête à l'API"
+              Write-Host "📌 Détail de l'erreur : $_"
               exit 1
           }
+
         shell: pwsh
 
