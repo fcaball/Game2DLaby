@@ -4,7 +4,7 @@ on: push
 
 permissions:
   actions: read  # Autorise l'accès aux artifacts
-  contents: write  # Autorise les pushs vers GitHub
+  contents: write 
 
 jobs:
   buildForAllSupportedPlatforms:
@@ -68,7 +68,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: Build-StandaloneWindows64
-          path: Builds/Windows
+          path: build
 
       - name: Get Artifact ID (Retry)
         run: |
