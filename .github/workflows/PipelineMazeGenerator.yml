@@ -50,7 +50,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: Build-${{ matrix.targetPlatform }}
-          path: Builds/StandaloneWindows64  # ✅ Vérifie si c'est le bon chemin
+          path: Builds/Windows  # ✅ Vérifie si c'est le bon chemin
 
       - name: Upload Unity logs on failure
         if: failure()
@@ -68,7 +68,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: Build-StandaloneWindows64
-          path: Builds/StandaloneWindows64
+          path: Builds/Windows
 
       - name: Get Artifact ID (Retry)
         run: |
