@@ -116,7 +116,7 @@ jobs:
           Write-Host "📌 Version détectée : $VERSION"
           
           # Construire l'URL finale
-          $FULL_URL = "${{API_URL}}?version=${{VERSION}}&link=${{ARTIFACT_URL}}"
+          $FULL_URL = "$API_URL?version=$VERSION&link=$ARTIFACT_URL"
           
           Write-Host "🌍 URL Finale : $FULL_URL"
           
