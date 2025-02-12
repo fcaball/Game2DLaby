@@ -9,7 +9,7 @@ permissions:
 jobs:
   buildForAllSupportedPlatforms:
     name: Build for ${{ matrix.targetPlatform }}
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     strategy:
       fail-fast: false
       matrix:
@@ -61,7 +61,7 @@ jobs:
 
   deployOnPersonalServer:
     name: Deploy on Personal server
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     needs: buildForAllSupportedPlatforms
     steps:
       - name: Download build artifact
