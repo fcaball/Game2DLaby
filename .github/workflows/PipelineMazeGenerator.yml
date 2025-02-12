@@ -22,11 +22,9 @@ jobs:
           fetch-depth: 0
           lfs: true
 
-      - name: Free disk space
-        uses: jlumbroso/free-disk-space@v1.3.1
-
       - name: Check disk usage before build
-        run: df -h
+        run: Get-PSDrive
+        shell: pwsh
 
       - name: Cache Library folder
         uses: actions/cache@v3
@@ -37,20 +35,20 @@ jobs:
 
       - name: Build with Unity
         uses: game-ci/unity-builder@v4
-        timeout-minutes: 50  # Augmente le timeout à 50 min
+        timeout-minutes: 50
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
           targetPlatform: ${{ matrix.targetPlatform }}
-          buildMethod: BuildScript.BuildMazeGeneratorWithWebProfile
+          buildMethod: BuildScript.BuildMazeGeneratorWindows  # ✅ Correctif ici
 
       - name: Upload Build Artifact
         uses: actions/upload-artifact@v4
         with:
           name: Build-${{ matrix.targetPlatform }}
-          path: Builds/Windows
+          path: Builds/StandaloneWindows64  # ✅ Vérifie si c'est le bon chemin
 
       - name: Upload Unity logs on failure
         if: failure()
@@ -68,52 +66,45 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: Build-StandaloneWindows64
-          path: Builds/Windows
-
+          path: Builds/StandaloneWindows64
 
       - name: Get Artifact ID (Retry)
         run: |
-          API_URL="https://api.github.com/repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts"
+          $API_URL="https://api.github.com/repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts"
           
-          echo "Fetching artifact ID from $API_URL"
+          Write-Host "Fetching artifact ID from $API_URL"
 
-          for i in {1..5}; do
-            RESPONSE=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" "$API_URL")
-            ARTIFACT_ID=$(echo "$RESPONSE" | jq -r '.artifacts[] | select(.name=="Build-StandaloneWindows64") | .id')
+          for ($i=1; $i -le 5; $i++) {
+            $RESPONSE = Invoke-RestMethod -Uri $API_URL -Headers @{ Authorization = "token ${{ secrets.GITHUB_TOKEN }}" }
+            $ARTIFACT_ID = $RESPONSE.artifacts | Where-Object { $_.name -eq "Build-StandaloneWindows64" } | Select-Object -ExpandProperty id
 
-            if [ -n "$ARTIFACT_ID" ] && [ "$ARTIFACT_ID" != "null" ]; then
-              echo "✅ Artifact ID trouvé : $ARTIFACT_ID"
-              echo "ARTIFACT_ID=$ARTIFACT_ID" >> "$GITHUB_ENV"
+            if ($ARTIFACT_ID) {
+              Write-Host "✅ Artifact ID trouvé : $ARTIFACT_ID"
+              echo "ARTIFACT_ID=$ARTIFACT_ID" >> $env:GITHUB_ENV
               exit 0
-            fi
+            }
 
-            echo "⏳ Artifact introuvable... nouvelle tentative dans 10 secondes ($i/5)"
-            sleep 10
-          done
+            Write-Host "⏳ Artifact introuvable... nouvelle tentative dans 10 secondes ($i/5)"
+            Start-Sleep -Seconds 10
+          }
 
-          echo "❌ Impossible de récupérer l'ID de l'artifact après 5 essais."
+          Write-Host "❌ Impossible de récupérer l'ID de l'artifact après 5 essais."
           exit 1
-
-
+        shell: pwsh
 
       - name: Get Version and Update Server
         run: |
-          # Vérifier si le fichier version.txt existe
-          if [ ! -f build/version.txt ]; then
-            echo "❌ ERREUR: Le fichier build/version.txt est introuvable !"
-            exit 1
-          fi
+          if (!(Test-Path -Path "build/version.txt")) {
+              Write-Host "❌ ERREUR: Le fichier build/version.txt est introuvable !"
+              exit 1
+          }
 
-          # Lire la version depuis le fichier
-          VERSION=$(cat build/version.txt)
+          $VERSION = Get-Content build/version.txt -Raw
+          $API_URL = "https://fabiencaballero.fr/MazeGenerator/version.php"
 
-          # URL de mise à jour
-          API_URL="https://fabiencaballero.fr/MazeGenerator/version.php"
+          $ARTIFACT_URL = "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts/${{ env.ARTIFACT_ID }}"
 
-          # Construire l'URL de téléchargement de l'artifact
-          ARTIFACT_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts/${{ env.ARTIFACT_ID }}"
+          Write-Host "🔗 Artifact URL: $ARTIFACT_URL"
 
-          echo "🔗 Artifact URL: $ARTIFACT_URL"
-
-          # Mettre à jour la version et le lien sur le serveur
-          curl -X GET "$API_URL?version=$VERSION&link=$ARTIFACT_URL"
+          Invoke-WebRequest -Uri "$API_URL?version=$VERSION&link=$ARTIFACT_URL" -Method Get
+        shell: pwsh

@@ -6,7 +6,7 @@ using UnityEngine;
 
 public class BuildScript
 {
-    public static void BuildMazeGeneratorWithWebProfile()
+    public static void BuildMazeGeneratorWithWindowsProfile()
 {
     // Charger le profil de build
     var bp = AssetDatabase.LoadAssetAtPath<BuildProfile>("Assets/Settings/Build Profiles/MazeGenerator-Web.asset");
