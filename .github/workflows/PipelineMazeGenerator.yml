@@ -14,7 +14,7 @@ jobs:
       fail-fast: false
       matrix:
         targetPlatform:
-          - StandaloneWindows64
+          - StandaloneWindows
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -50,7 +50,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: Build-${{ matrix.targetPlatform }}
-          path: build 
+          path: Builds/Windows 
 
       - name: Upload Unity logs on failure
         if: failure()
@@ -67,8 +67,8 @@ jobs:
       - name: Download build artifact
         uses: actions/download-artifact@v4
         with:
-          name: Build-StandaloneWindows64
-          path: build
+          name: Build-StandaloneWindows
+          path: Builds/Windows
 
       - name: Get Artifact ID (Retry)
         run: |
@@ -78,7 +78,7 @@ jobs:
 
           for ($i=1; $i -le 5; $i++) {
             $RESPONSE = Invoke-RestMethod -Uri $API_URL -Headers @{ Authorization = "token ${{ secrets.GITHUB_TOKEN }}" }
-            $ARTIFACT_ID = $RESPONSE.artifacts | Where-Object { $_.name -eq "Build-StandaloneWindows64" } | Select-Object -ExpandProperty id
+            $ARTIFACT_ID = $RESPONSE.artifacts | Where-Object { $_.name -eq "Build-StandaloneWindows" } | Select-Object -ExpandProperty id
 
             if ($ARTIFACT_ID) {
               Write-Host "✅ Artifact ID trouvé : $ARTIFACT_ID"

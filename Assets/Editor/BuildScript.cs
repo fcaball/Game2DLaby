@@ -9,7 +9,7 @@ public class BuildScript
     public static void BuildMazeGeneratorWithWindowsProfile()
 {
     // Charger le profil de build
-    var bp = AssetDatabase.LoadAssetAtPath<BuildProfile>("Assets/Settings/Build Profiles/MazeGenerator-Web.asset");
+    // var bp = AssetDatabase.LoadAssetAtPath<BuildProfile>("Assets/Settings/Build Profiles/MazeGenerator-Web.asset");
     PlayerSettings.bundleVersion = IncrementBuildVersion(); // 🔹 Met à jour la version ici
 
     // Définir le chemin de sortie
@@ -19,16 +19,16 @@ public class BuildScript
         Directory.CreateDirectory(buildPath); // Créer le répertoire s'il n'existe pas
     }
 
-    BuildPlayerWithProfileOptions options = new()
-    {
-        buildProfile = bp,
-        options = BuildOptions.None,
-    };
+    // BuildPlayerWithProfileOptions options = new()
+    // {
+    //     buildProfile = bp,
+    //     options = BuildOptions.None,
+    // };
 
     string[] scenes = new string[] { "Assets/Scenes/MazeGenerator.unity" }; // Exemple de scène
 
     // Lancer le build
-    BuildReport report = BuildPipeline.BuildPlayer(scenes,buildPath,BuildTarget.StandaloneWindows64,BuildOptions.None);
+    BuildReport report = BuildPipeline.BuildPlayer(scenes,buildPath,BuildTarget.StandaloneWindows,BuildOptions.None);
     BuildSummary summary = report.summary;
 
     if (summary.result == BuildResult.Succeeded)
