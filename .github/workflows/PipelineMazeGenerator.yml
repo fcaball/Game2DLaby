@@ -104,12 +104,23 @@ jobs:
               exit 1
           }
 
+          # Lire la version depuis le fichier
           $VERSION = Get-Content MazeBuilds/Windows/version.txt -Raw
           $API_URL = "https://fabiencaballero.fr/MazeGenerator/version.php"
 
+          # Construire l'URL de l'artifact
           $ARTIFACT_URL = "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts/${{ env.ARTIFACT_ID }}"
 
-          Write-Host "🔗 Artifact URL: $ARTIFACT_URL"
+          # 🚀 Encodage des paramètres
+          $ENCODED_VERSION = [System.Web.HttpUtility]::UrlEncode($VERSION)
+          $ENCODED_ARTIFACT_URL = [System.Web.HttpUtility]::UrlEncode($ARTIFACT_URL)
 
-          Invoke-WebRequest -Uri "$API_URL?version=$VERSION&link=$ARTIFACT_URL" -Method Get
+          # Construire l'URL finale
+          $FULL_URL = "$API_URL?version=$ENCODED_VERSION&link=$ENCODED_ARTIFACT_URL"
+
+          Write-Host "🔗 URL de l'artifact : $ARTIFACT_URL"
+          Write-Host "🌍 URL Finale Encodée : $FULL_URL"
+
+          # Envoyer la requête correctement
+          Invoke-WebRequest -Uri $FULL_URL -Method Get
         shell: pwsh
