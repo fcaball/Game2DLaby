@@ -50,7 +50,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: Build-${{ matrix.targetPlatform }}
-          path: Builds/Windows  # ✅ Vérifie si c'est le bon chemin
+          path: build 
 
       - name: Upload Unity logs on failure
         if: failure()
