@@ -3,7 +3,7 @@ name: Build MazeGenerator
 on: push
 
 permissions:
-  actions: read  # Autorise l'accès aux artifacts
+  actions: read
   contents: write 
 
 jobs:
@@ -30,10 +30,9 @@ jobs:
         uses: actions/cache@v3
         with:
           path: Library
-          key: Library-${{ matrix.targetPlatform }}-${{ runner.os }}
+          key: Library-${{ matrix.targetPlatform }}-${{ runner.os }}-${{ github.run_id }}
           restore-keys: |
             Library-${{ runner.os }}-
-
 
       - name: Build with Unity
         uses: game-ci/unity-builder@v4
@@ -44,13 +43,13 @@ jobs:
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
           targetPlatform: ${{ matrix.targetPlatform }}
-          buildMethod: BuildScript.BuildMazeGeneratorWithWindowsProfile  # ✅ Correctif ici
+          buildMethod: BuildScript.BuildMazeGeneratorWithWindowsProfile  
 
       - name: Upload Build Artifact
         uses: actions/upload-artifact@v4
         with:
           name: Build-${{ matrix.targetPlatform }}
-          path: MazeBuilds/Windows 
+          path: MazeBuilds/Windows
 
       - name: Upload Unity logs on failure
         if: failure()
@@ -76,21 +75,25 @@ jobs:
           
           Write-Host "Fetching artifact ID from $API_URL"
 
-          for ($i=1; $i -le 5; $i++) {
-            $RESPONSE = Invoke-RestMethod -Uri $API_URL -Headers @{ Authorization = "token ${{ secrets.GITHUB_TOKEN }}" }
-            $ARTIFACT_ID = $RESPONSE.artifacts | Where-Object { $_.name -eq "Build-StandaloneWindows" } | Select-Object -ExpandProperty id
+          for ($i=1; $i -le 10; $i++) {
+            try {
+              $RESPONSE = Invoke-RestMethod -Uri $API_URL -Headers @{ Authorization = "token ${{ secrets.GITHUB_TOKEN }}" }
+              $ARTIFACT_ID = $RESPONSE.artifacts | Where-Object { $_.name -eq "Build-StandaloneWindows" } | Select-Object -ExpandProperty id
 
-            if ($ARTIFACT_ID) {
-              Write-Host "✅ Artifact ID trouvé : $ARTIFACT_ID"
-              echo "ARTIFACT_ID=$ARTIFACT_ID" >> $env:GITHUB_ENV
-              exit 0
+              if ($ARTIFACT_ID) {
+                Write-Host "✅ Artifact ID trouvé : $ARTIFACT_ID"
+                echo "ARTIFACT_ID=$ARTIFACT_ID" >> $env:GITHUB_ENV
+                exit 0
+              }
+            } catch {
+              Write-Host "⚠️ Erreur lors de la récupération de l'ID de l'artefact"
             }
 
-            Write-Host "⏳ Artifact introuvable... nouvelle tentative dans 10 secondes ($i/5)"
+            Write-Host "⏳ Artifact introuvable... nouvelle tentative dans 10 secondes ($i/10)"
             Start-Sleep -Seconds 10
           }
 
-          Write-Host "❌ Impossible de récupérer l'ID de l'artifact après 5 essais."
+          Write-Host "❌ Impossible de récupérer l'ID de l'artifact après 10 essais."
           exit 1
         shell: pwsh
 
