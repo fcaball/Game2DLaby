@@ -131,8 +131,8 @@ jobs:
       - name: Upload Artifact
         run: |
           $ftpUrl = "ftp://fabiencaballero.fr/"
-          $ftpUsername = ${{secrets.FTP_USERNAME}}
-          $ftpPassword = ${{secrets.FTP_PASSWORD}}
+          $ftpUsername = "${{secrets.FTP_USERNAME}}"
+          $ftpPassword = "${{secrets.FTP_PASSWORD}}"
           $filePath = "${{ github.workspace }}/MazeBuilds/Windows/Build-StandaloneWindows.zip"  # Remplacez par le nom de votre fichier
 
           # Créer un objet WebClient
