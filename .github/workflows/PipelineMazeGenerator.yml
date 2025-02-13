@@ -128,12 +128,12 @@ jobs:
               exit 1
           }
         
-      - name: Upload Artifact
+      - name: Upload Artifact To Server
         run: |
           $ftpUrl = "ftp://fabiencaballero.fr/"
           $ftpUsername = "${{secrets.FTP_USERNAME}}"
           $ftpPassword = "${{secrets.FTP_PASSWORD}}"
-          $filePath = "${{ github.workspace }}/MazeBuilds/Windows/Build-StandaloneWindows.zip"  # Remplacez par le nom de votre fichier
+          $filePath = "./MazeBuilds/Windows/Build-StandaloneWindows.zip"
 
           # Créer un objet WebClient
           $webClient = New-Object System.Net.WebClient
