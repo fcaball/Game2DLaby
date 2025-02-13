@@ -130,10 +130,11 @@ jobs:
         
       - name: Upload Artifact To Server
         run: |
+          Compress-Archive -Path "MazeBuilds/Windows/*" -DestinationPath "MazeBuilds/Windows/MazeBuild.zip"
           $ftpUrl = "ftp://fabiencaballero.fr/"
           $ftpUsername = "${{secrets.FTP_USERNAME}}"
           $ftpPassword = "${{secrets.FTP_PASSWORD}}"
-          $filePath = "MazeBuilds/Windows/Build-StandaloneWindows.zip"
+          $filePath = "MazeBuilds/Windows/MazeBuild.zip"
 
           # Créer un objet WebClient
           $webClient = New-Object System.Net.WebClient
