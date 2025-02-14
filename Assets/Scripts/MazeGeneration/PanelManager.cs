@@ -4,7 +4,7 @@ using UnityEngine.UI;
 public class PanelManager : MonoBehaviour
 {
     private Image _raycastBlocker;
-    private void Start() {
+    private void Awake() {
         _raycastBlocker=GetComponent<Image>();
         
     }
