@@ -10,10 +10,10 @@ public class BuildScript
     public static void BuildMazeGeneratorWithWindowsProfile()
     {
         // string currentVersion = System.Environment.GetEnvironmentVariable("BUILD_VERSION");
-        string currentVersion="0.0.1";
+        string currentBuildVersion=File.ReadAllText("Assets/Resources/version.txt").Trim();
 
         // Mise à jour et sauvegarde de la version
-        PlayerSettings.bundleVersion = IncrementBuildVersion(currentVersion);
+        PlayerSettings.bundleVersion = IncrementBuildVersion(currentBuildVersion);
         PlayerSettings.productName="MazeGenerator";
         AssetDatabase.SaveAssets();
 

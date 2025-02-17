@@ -40,7 +40,7 @@ jobs:
             $response = Invoke-WebRequest -Uri "https://fabiencaballero.fr/MazeGenerator/version.php" -UseBasicParsing
             $version = ($response.Content | ConvertFrom-Json).version
             echo "Current version: $version"
-            echo "BUILD_VERSION=$version" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8
+            echo $version > "Assets/Resources/version.txt"
 
 
       - name: Build with Unity
