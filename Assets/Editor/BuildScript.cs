@@ -7,8 +7,10 @@ using UnityEngine;
 
 public class BuildScript
 {
-    public static void BuildMazeGeneratorWithWindowsProfile(string currentVersion)
+    public static void BuildMazeGeneratorWithWindowsProfile()
     {
+        string currentVersion = System.Environment.GetEnvironmentVariable("BUILD_VERSION");
+
         // Mise à jour et sauvegarde de la version
         PlayerSettings.bundleVersion = IncrementBuildVersion(currentVersion);
         PlayerSettings.productName="MazeGenerator";
