@@ -34,6 +34,15 @@ jobs:
           restore-keys: |
             Library-${{ runner.os }}-
 
+      - name: Install jq (if needed)
+        run: sudo apt-get install -y jq
+
+      - name: Get current version from server
+        run: |
+          VERSION=$(curl -s https://fabiencaballero.fr/MazeGenerator/version.php | jq -r '.version')
+          echo "Current version: $VERSION"
+          echo "BUILD_VERSION=$VERSION" >> $GITHUB_ENV
+
       - name: Build with Unity
         uses: game-ci/unity-builder@v4
         timeout-minutes: 50
@@ -43,7 +52,8 @@ jobs:
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
           targetPlatform: ${{ matrix.targetPlatform }}
-          buildMethod: BuildScript.BuildMazeGeneratorWithWindowsProfile  
+          buildMethod: BuildScript.BuildMazeGeneratorWithWindowsProfile
+          customParameters: ${{env.Build_VERSION}}
 
       - name: Upload Build Artifact
         uses: actions/upload-artifact@v4

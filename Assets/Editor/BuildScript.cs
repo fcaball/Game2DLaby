@@ -1,17 +1,16 @@
 using System.IO;
-using System.Threading.Tasks;
+using Codice.Client.Common;
 using UnityEditor;
 using UnityEditor.Build.Reporting;
 using UnityEngine;
-using UnityEngine.Networking;
 
 
 public class BuildScript
 {
-    public static async Task BuildMazeGeneratorWithWindowsProfile()
+    public static void BuildMazeGeneratorWithWindowsProfile(string currentVersion)
     {
         // Mise à jour et sauvegarde de la version
-        PlayerSettings.bundleVersion = IncrementBuildVersion(await GetVersionFromServer());
+        PlayerSettings.bundleVersion = IncrementBuildVersion(currentVersion);
         PlayerSettings.productName="MazeGenerator";
         AssetDatabase.SaveAssets();
 
@@ -46,6 +45,7 @@ public class BuildScript
 
     static string IncrementBuildVersion(string currentVersion)
     {
+
         string[] parts = currentVersion.Split('.');
 
         if (parts.Length == 3 && int.TryParse(parts[2], out int patchVersion))
@@ -55,26 +55,5 @@ public class BuildScript
         }
         return currentVersion;
     }
-
-     public static async Task<string> GetVersionFromServer()
-    {
-        using (UnityWebRequest request = UnityWebRequest.Get("https://fabiencaballero.fr/MazeGenerator/version.php"))
-        {
-            await request.SendWebRequest();
-
-            if (request.result == UnityWebRequest.Result.Success)
-            {
-                string json = request.downloadHandler.text;
-                string versionData = JsonUtility.FromJson<string>(json);
-                Debug.Log($"version : {versionData}");
-                return versionData;
-            }
-            else
-            {
-                Debug.LogError("❌ Erreur lors de la récupération de la version : " + request.error);
-                return"0.0.0"; // Valeur par défaut en cas d'erreur
-            }
-        }
-    }
-
+    
 }
