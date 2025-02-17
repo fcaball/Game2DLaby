@@ -7,90 +7,90 @@ using UnityEngine.Tilemaps;
 public class TileMapVisualizer : MonoBehaviour
 {
 
-    [SerializeField] private Tilemap Map;
-    [SerializeField] private List<TileBase> codeTiles;
-    [SerializeField] private SimpleMapGenerator simpleMapGenerator;
-    [SerializeField] private FloorsEditorManager floorsEditorManager;
-    [SerializeField] private UnityEvent TilemapChanged;
-    [SerializeField] private UnityEvent ResetStartPosition;
+    [SerializeField] private Tilemap _map;
+    [SerializeField] private List<TileBase> _codeTiles;
+    [SerializeField] private SimpleMapGenerator _simpleMapGenerator;
+    [SerializeField] private FloorsEditorManager _floorsEditorManager;
+    [SerializeField] private UnityEvent _tilemapChanged;
+    [SerializeField] private UnityEvent _resetStartPosition;
 
     private void Start()
     {
 
-        if (MazeData.mazeFloors.Count > 0)
+        if (MazeData.MazeFloors.Count > 0)
             LoadFloor(0);
     }
 
     public void PaintTiles()
     {
-        Map.ClearAllTiles();
-        PaintTiles(Map);
+        _map.ClearAllTiles();
+        PaintTiles(_map);
     }
 
     private void PaintTiles(Tilemap tilemap)
     {
-        HashSet<Vector3Int> TileDatas = simpleMapGenerator.GetMapTiles();
+        HashSet<Vector3Int> TileDatas = _simpleMapGenerator.GetMapTiles();
         foreach (var Vector3Int in TileDatas)
         {
-            PaintSingleTile(tilemap, codeTiles[Vector3Int.z], new Vector3Int(Vector3Int.x, Vector3Int.y));
+            PaintSingleTile(tilemap, _codeTiles[Vector3Int.z], new Vector3Int(Vector3Int.x, Vector3Int.y));
         }
     }
 
     private void PaintSingleTile(Tilemap tilemap, TileBase tile, Vector3Int position)
     {
         tilemap.SetTile(new Vector3Int(position.x, position.y, 0), tile);
-        TilemapChanged.Invoke();
+        _tilemapChanged.Invoke();
     }
 
     public void Clear(bool isTotalReset = false)
     {
-        HashSet<Vector3Int> floorTiles = simpleMapGenerator.GetMapTiles();
+        HashSet<Vector3Int> floorTiles = _simpleMapGenerator.GetMapTiles();
 
-        Map.ClearAllTiles();
+        _map.ClearAllTiles();
         floorTiles.Clear();
         if (!isTotalReset)
         {
-            Vector3Int startPosition = simpleMapGenerator.GetStartPosition();
+            Vector3Int startPosition = _simpleMapGenerator.GetStartPosition();
             floorTiles.Add(new Vector3Int() { x = startPosition.x, y = startPosition.y, z = (int)TileType.Floor });
-            Map.SetTile(new Vector3Int(startPosition.x, startPosition.y, 0), codeTiles[(int)TileType.Floor]);
+            _map.SetTile(new Vector3Int(startPosition.x, startPosition.y, 0), _codeTiles[(int)TileType.Floor]);
         }
         else
         {
-            ResetStartPosition.Invoke();
+            _resetStartPosition.Invoke();
         }
 
     }
 
     public void AddTile(Vector3Int cellPosition, TileType tileType)
     {
-        HashSet<Vector3Int> floorTiles = simpleMapGenerator.GetMapTiles();
+        HashSet<Vector3Int> floorTiles = _simpleMapGenerator.GetMapTiles();
 
         floorTiles.Add(new Vector3Int() { x = cellPosition.x, y = cellPosition.y, z = (int)tileType });
-        PaintSingleTile(Map, codeTiles[(int)tileType], cellPosition);
+        PaintSingleTile(_map, _codeTiles[(int)tileType], cellPosition);
     }
 
     public HashSet<Vector3Int> GetMapTiles()
     {
-        HashSet<Vector3Int> floorTiles = simpleMapGenerator.GetMapTiles();
+        HashSet<Vector3Int> floorTiles = _simpleMapGenerator.GetMapTiles();
 
         return floorTiles;
     }
 
     public Tilemap GetTileMap()
     {
-        return Map;
+        return _map;
     }
 
     public void LoadFloor(int index)
     {
-        Map.ClearAllTiles();
-        simpleMapGenerator.SetMapTiles(MazeData.mazeFloors[index].tileMap);
+        _map.ClearAllTiles();
+        _simpleMapGenerator.SetMapTiles(MazeData.MazeFloors[index].TileMap);
         PaintTiles();
     }
 
     public void ChangeTileType(Vector3Int tilePos, int tileType)
     {
         // PaintSingleTile(Map, codeTiles[tileType], tilePos);
-        simpleMapGenerator.SetTileType(tilePos, tileType);
+        _simpleMapGenerator.SetTileType(tilePos, tileType);
     }
 }

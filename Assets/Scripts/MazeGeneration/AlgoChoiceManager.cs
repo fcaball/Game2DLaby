@@ -3,17 +3,17 @@ using UnityEngine;
 
 public class AlgoChoiceManager : MonoBehaviour
 {
-   [SerializeField] private List<GameObject> AlgosUIParameters;
-   [SerializeField] private SimpleMapGenerator simpleMapGenerator;
-   int currentAlgo=0;
+   [SerializeField] private List<GameObject> _algosUIParameters;
+   [SerializeField] private SimpleMapGenerator _simpleMapGenerator;
+   int _currentAlgo=0;
 
-    public void changeAlgo(int index){
-        AlgosUIParameters[currentAlgo].SetActive(false);
-        currentAlgo=index;
-        AlgosUIParameters[currentAlgo].SetActive(true);
-        simpleMapGenerator.SetIterations("0");
-        simpleMapGenerator.SetWalkLength("0");
-        simpleMapGenerator.SetProbalityOfCreateRoom("0");
+    public void ChangeAlgo(int index){
+        _algosUIParameters[_currentAlgo].SetActive(false);
+        _currentAlgo=index;
+        _algosUIParameters[_currentAlgo].SetActive(true);
+        _simpleMapGenerator.SetIterations("0");
+        _simpleMapGenerator.SetWalkLength("0");
+        _simpleMapGenerator.SetProbalityOfCreateRoom("0");
     }
   
 }

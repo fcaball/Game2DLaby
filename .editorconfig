@@ -1,0 +1,33 @@
+# Top-most EditorConfig file
+root = true
+
+# Appliquer les règles à tous les fichiers C#
+[*.cs]
+# Définir le groupe de symboles 'public_symbols'
+dotnet_naming_symbols.public_symbols.applicable_kinds = property,method,field,event,delegate
+dotnet_naming_symbols.public_symbols.applicable_accessibilities = public
+
+# Définir le style de nommage 'pascal_case'
+dotnet_naming_style.pascal_case.capitalization = pascal_case
+
+# Définir la règle de nommage 'public_members_must_be_pascal_case'
+dotnet_naming_rule.public_members_must_be_pascal_case.symbols = public_symbols
+dotnet_naming_rule.public_members_must_be_pascal_case.style = pascal_case
+dotnet_naming_rule.public_members_must_be_pascal_case.severity = error
+
+# Définir le groupe de symboles 'private_fields'
+dotnet_naming_symbols.private_fields.applicable_kinds = field
+dotnet_naming_symbols.private_fields.applicable_accessibilities = private
+
+# Définir le style de nommage 'camel_case_with_underscore'
+dotnet_naming_style.camel_case_with_underscore.capitalization = camel_case
+dotnet_naming_style.camel_case_with_underscore.required_prefix = _
+
+# Définir la règle de nommage 'private_fields_must_be_camel_case_with_underscore'
+dotnet_naming_rule.private_fields_must_be_camel_case_with_underscore.symbols = private_fields
+dotnet_naming_rule.private_fields_must_be_camel_case_with_underscore.style = camel_case_with_underscore
+dotnet_naming_rule.private_fields_must_be_camel_case_with_underscore.severity = error
+
+# Définir la gravité des violations de nommage
+dotnet_diagnostic.IDE1006.severity = error
+

@@ -11,47 +11,63 @@ using Random = UnityEngine.Random;
 public class SimpleMapGenerator : MonoBehaviour
 {
     [SerializeField] protected Vector3Int startPosition;
-    private int iterations = 0;
-    private int walkLength = 0;
-    private float probability = 0.0f;
-    private bool isRoomCreationIsPossible = true;
-    private bool isEachIterationStartFromRandomlyPosition = true;
-    [SerializeField] private TileMapVisualizer tileMapVisualizer;
-    private HashSet<Vector3Int> mapTiles = new();
-    [SerializeField] private UnityEvent MissingParameter;
-    [SerializeField] private GameObject RunButton;
-    [SerializeField] private Image LoadingPicture;
-    private int currentAlgo;
+    private int _iterations = 0;
+    private int _walkLength = 0;
+    private float _probability = 0.0f;
+    private bool _isRoomCreationIsPossible = true;
+    private bool _isRoomGenerationIsON = false;
+    private bool _isEachIterationStartFromRandomlyPosition = true;
+    [SerializeField] private TileMapVisualizer _tileMapVisualizer;
+    private HashSet<Vector3Int> _mapTiles = new();
+    [SerializeField] private UnityEvent _missingParameter;
+    [SerializeField] private GameObject _runButton;
+    [SerializeField] private Image _loadingPicture;
+    private int _currentAlgo;
+    private List<Vector3Int> _potentialsRooms = new();
+    [SerializeField] private UnityEvent<string> _refreshNumberOfPotentialRooms;
 
     public void SetCurrentAlgo(int index)
     {
-        currentAlgo = index;
+        _currentAlgo = index;
     }
 
     #region General Run
     public void Run()
     {
-        switch (currentAlgo)
+
+        switch (_currentAlgo)
         {
             case 0:
-                if (iterations == 0 || walkLength == 0)
+                if (_iterations == 0 || _walkLength == 0)
                 {
-                    MissingParameter.Invoke();
+                    _missingParameter.Invoke();
                 }
                 else
                 {
-                    StartCoroutine(RunProceduralGenerationCoroutine(RunRandomWalkCoroutine(startPosition,true)));
+                    if (_isRoomCreationIsPossible && _potentialsRooms.Count > 0)
+                    {
+                        foreach (var RoomStart in _potentialsRooms)
+                        {
+                            StartCoroutine(RunProceduralGenerationCoroutine(RunRandomWalkCoroutine(RoomStart, true)));
+                        }
+                    }
+                    else
+                    {
+                        StartCoroutine(RunProceduralGenerationCoroutine(RunRandomWalkCoroutine(startPosition, true)));
+                    }
+                    SetIsRoomGenerationIsON(false);
+
                 }
                 break;
 
-            case 1:
+            case 2:
                 ClearWalls();
                 StartCoroutine(RunProceduralGenerationCoroutine(RunWallGeneration()));
                 break;
-            case 2:
-                if (iterations == 0 || walkLength == 0)
+            case 1:
+                if (_iterations == 0 || _walkLength == 0)
                 {
-                    MissingParameter.Invoke();
+                    _missingParameter.Invoke();
                 }
                 else
                 {
@@ -59,21 +75,22 @@ public class SimpleMapGenerator : MonoBehaviour
                 }
                 break;
 
+
         }
     }
 
 
     private IEnumerator RunProceduralGenerationCoroutine(IEnumerator enumerator)
     {
-        RunButton.SetActive(false);
-        LoadingPicture.gameObject.SetActive(true);
+        _runButton.SetActive(false);
+        _loadingPicture.gameObject.SetActive(true);
 
         yield return StartCoroutine(enumerator);
 
-        tileMapVisualizer.PaintTiles();
-        LoadingPicture.fillAmount = 0;
-        LoadingPicture.gameObject.SetActive(false);
-        RunButton.SetActive(true);
+        _tileMapVisualizer.PaintTiles();
+        _loadingPicture.fillAmount = 0;
+        _loadingPicture.gameObject.SetActive(false);
+        _runButton.SetActive(true);
     }
 
     #endregion
@@ -85,12 +102,13 @@ public class SimpleMapGenerator : MonoBehaviour
     {
         var currentPosition = startPos;
         HashSet<Vector3Int> positions = new();
-        for (int i = 0; i < iterations; i++)
+        for (int i = 0; i < _iterations; i++)
         {
-            var path = ProceduralGenerationAlgorithms.SimpleRandomWalk(currentPosition, walkLength, mapTiles.ToList());
+            Debug.Log("Iter");
+            var path = ProceduralGenerationAlgorithms.SimpleRandomWalk(currentPosition, _walkLength, _mapTiles.ToList());
 
             positions.UnionWith(path);
-            if (isEachIterationStartFromRandomlyPosition)
+            if (_isEachIterationStartFromRandomlyPosition)
             {
                 int index = Random.Range(0, positions.Count);
                 while (positions.ElementAt(index).z == (int)TileType.StraightVerticalWall)
@@ -100,10 +118,10 @@ public class SimpleMapGenerator : MonoBehaviour
                 currentPosition = new Vector3Int(positions.ElementAt(index).x, positions.ElementAt(index).y, 0);
             }
             if (isLoadingHaveToBeUpdated)
-                LoadingPicture.fillAmount = (float)i / iterations;
+                _loadingPicture.fillAmount = (float)i / _iterations;
             yield return null;
         }
-        mapTiles.UnionWith(positions);
+        _mapTiles.UnionWith(positions);
     }
     #endregion
 
@@ -114,22 +132,23 @@ public class SimpleMapGenerator : MonoBehaviour
     {
         var currentPosition = startPosition;
         HashSet<Vector3Int> positions = new();
-        for (int i = 0; i < iterations; i++)
+        for (int i = 0; i < _iterations; i++)
         {
-            var path = ProceduralGenerationAlgorithms.SimpleCorridorRandomWalk(currentPosition, walkLength, mapTiles.ToList());
+            var path = ProceduralGenerationAlgorithms.SimpleCorridorRandomWalk(currentPosition, _walkLength, _mapTiles.ToList());
 
             currentPosition = path.Last();
             positions.UnionWith(path);
-            if (isRoomCreationIsPossible && Random.Range(0, 1) < probability)
+            if (_isRoomCreationIsPossible && Random.Range(0.0f, 1.0f) < (_probability / 100.0f))
             {
-                RunRandomWalkCoroutine(currentPosition,false);
+                _potentialsRooms.Add(currentPosition);
+                _refreshNumberOfPotentialRooms.Invoke(_potentialsRooms.Count + " pièce(s) potentielle(s)");
             }
-            Debug.Log(i / iterations);
-            LoadingPicture.fillAmount = (float)i / iterations;
+            Debug.Log(i / _iterations);
+            _loadingPicture.fillAmount = (float)i / _iterations;
             yield return null;
         }
 
-        mapTiles.UnionWith(positions);
+        _mapTiles.UnionWith(positions);
     }
 
 
@@ -141,9 +160,9 @@ public class SimpleMapGenerator : MonoBehaviour
     {
         HashSet<Vector3Int> walls = new();
 
-        for (int i = 0; i < mapTiles.Count; i++)
+        for (int i = 0; i < _mapTiles.Count; i++)
         {
-            var currentTile = mapTiles.ElementAt(i);
+            var currentTile = _mapTiles.ElementAt(i);
             if (currentTile.z == (int)TileType.Floor)
             {
                 Vector3Int[] adjacentPositions = new Vector3Int[]
@@ -162,7 +181,7 @@ public class SimpleMapGenerator : MonoBehaviour
 
                 foreach (var pos in adjacentPositions)
                 {
-                    if (!mapTiles.Contains(pos) && !walls.Contains(pos))
+                    if (!_mapTiles.Contains(pos) && !walls.Contains(pos))
                     {
                         walls.Add(new Vector3Int { x = pos.x, y = pos.y, z = -1 });
                     }
@@ -170,7 +189,7 @@ public class SimpleMapGenerator : MonoBehaviour
 
 
             }
-            LoadingPicture.fillAmount = (float)i / mapTiles.Count;
+            _loadingPicture.fillAmount = (float)i / _mapTiles.Count;
 
             yield return null;
         }
@@ -178,7 +197,7 @@ public class SimpleMapGenerator : MonoBehaviour
 
     }
 
-    public void UpdateWallsAfterAlgo(HashSet<Vector3Int> walls)
+    public HashSet<Vector3Int> UpdateWallsAfterAlgo(HashSet<Vector3Int> walls)
     {
 
         HashSet<Vector2Int> wallPositions2Int = new(walls.Select(w => new Vector2Int(w.x, w.y)));
@@ -188,14 +207,19 @@ public class SimpleMapGenerator : MonoBehaviour
 
             var neibourghPresence = HasNeibourghIn(pos, wallPositions2Int);
 
+            int TileType = (int)GetNewTileTypeWithNeibourghs(neibourghPresence);
+            if (pos.z != TileType)
+            {
 
-            walls.Remove(pos);
-            pos.z = (int)GetNewTileTypeWithNeibourghs(neibourghPresence);
-            walls.Add(new Vector3Int { x = pos.x, y = pos.y, z = pos.z });
+                walls.Remove(pos);
+                pos.z = TileType;
+                walls.Add(new Vector3Int { x = pos.x, y = pos.y, z = pos.z });
+            }
         }
 
-        mapTiles.UnionWith(walls);
-        tileMapVisualizer.PaintTiles();
+        _mapTiles.UnionWith(walls);
+        _tileMapVisualizer.PaintTiles();
+        return walls;
     }
 
     public List<bool> HasNeibourghIn(Vector3Int myPos, HashSet<Vector2Int> positionsList)
@@ -272,24 +296,30 @@ public class SimpleMapGenerator : MonoBehaviour
 
     private void ClearWalls()
     {
-        mapTiles.RemoveWhere((t) => t.z != (int)TileType.Floor);
+        _mapTiles.RemoveWhere((t) => t.z != (int)TileType.Floor);
     }
     #endregion
 
     #region Setters/Getters
     public void SetIsEachIterationStartFromRandomlyPosition(bool value)
     {
-        isEachIterationStartFromRandomlyPosition = value;
+        _isEachIterationStartFromRandomlyPosition = value;
     }
+
+    public void SetIsRoomGenerationIsON(bool value)
+    {
+        _isRoomGenerationIsON = value;
+    }
+
 
     public void SetIterations(string value)
     {
-        int.TryParse(value, out iterations);
+        int.TryParse(value, out _iterations);
     }
 
     public void SetWalkLength(string value)
     {
-        int.TryParse(value, out walkLength);
+        int.TryParse(value, out _walkLength);
     }
     public void SetStartPosition(Vector3Int startPos)
     {
@@ -302,31 +332,31 @@ public class SimpleMapGenerator : MonoBehaviour
 
     public HashSet<Vector3Int> GetMapTiles()
     {
-        return mapTiles;
+        return _mapTiles;
     }
 
     public HashSet<Vector3Int> SetMapTiles(List<Vector3Int> tileMap)
     {
-        mapTiles.Clear();
+        _mapTiles.Clear();
         for (int i = 0; i < tileMap.Count; i++)
         {
-            mapTiles.Add(new Vector3Int
+            _mapTiles.Add(new Vector3Int
             {
                 x = tileMap[i].x,
                 y = tileMap[i].y,
                 z = tileMap[i].z,
             });
         }
-        return mapTiles;
+        return _mapTiles;
     }
 
     public void DeleteTile(Vector3Int tilePos)
     {
-        for (int i = 0; i < mapTiles.Count; i++)
+        for (int i = 0; i < _mapTiles.Count; i++)
         {
-            if (mapTiles.ElementAt(i).x == tilePos.x && mapTiles.ElementAt(i).y == tilePos.y)
+            if (_mapTiles.ElementAt(i).x == tilePos.x && _mapTiles.ElementAt(i).y == tilePos.y)
             {
-                mapTiles.Remove(mapTiles.ElementAt(i));
+                _mapTiles.Remove(_mapTiles.ElementAt(i));
             }
         }
     }
@@ -334,55 +364,30 @@ public class SimpleMapGenerator : MonoBehaviour
     public void SetTileType(Vector3Int tilePos, int tiletype)
     {
 
-        for (int i = 0; i < mapTiles.Count; i++)
+        for (int i = 0; i < _mapTiles.Count; i++)
         {
-            var tile = mapTiles.ElementAt(i);
+            var tile = _mapTiles.ElementAt(i);
             if (tile.x == tilePos.x && tile.y == tilePos.y)
             {
                 tile.z = tiletype;
-                mapTiles.Add(tile);
+                _mapTiles.Add(tile);
                 break;
             }
         }
-        tileMapVisualizer.PaintTiles();
+        _tileMapVisualizer.PaintTiles();
     }
 
     public void SetProbalityOfCreateRoom(string v)
     {
-        float.TryParse(v, out probability);
+        float.TryParse(v, out _probability);
     }
 
     public void SetIsRoomCreationIsPossible(bool value)
     {
-        isRoomCreationIsPossible = value;
+        _isRoomCreationIsPossible = value;
     }
 
 }
+#endregion
 
-public struct Vector2Int
-{
-    public int x;
-    public int y;
 
-    public Vector2Int(int x, int y)
-    {
-        this.x = x;
-        this.y = y;
-    }
-
-    public override bool Equals(object obj)
-    {
-        if (obj is Vector2Int)
-        {
-            Vector2Int other = (Vector2Int)obj;
-            return x == other.x && y == other.y;
-        }
-        return false;
-    }
-
-    public override int GetHashCode()
-    {
-        return x.GetHashCode() ^ y.GetHashCode();
-    }
-    #endregion
-}

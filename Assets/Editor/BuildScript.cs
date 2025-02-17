@@ -3,6 +3,7 @@ using UnityEditor;
 using UnityEditor.Build.Reporting;
 using UnityEngine;
 
+
 public class BuildScript
 {
     public static void BuildMazeGeneratorWithWindowsProfile()

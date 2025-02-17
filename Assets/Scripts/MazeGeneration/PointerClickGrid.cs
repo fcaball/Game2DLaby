@@ -10,136 +10,138 @@ using System.Linq;
 
 public class PointerClickGrid : MonoBehaviour, IPointerClickHandler/* , IPointerEnterHandler */
 {
-    private Tilemap tilemap; // Référence à la Tilemap
-    [SerializeField] private Tilemap tilemapUI; // Référence à la Tilemap
-    [SerializeField] private Tilemap tilemapUI2; // Référence à la Tilemap
-    [SerializeField] private TileMapVisualizer tileMapVisualizer;
-    [SerializeField] private SimpleMapGenerator simpleMapGenerator;
-    [SerializeField] private Button startPosition;
+    private Tilemap _tilemap; // Référence à la Tilemap
+    [SerializeField] private Tilemap _tilemapUI; // Référence à la Tilemap
+    [SerializeField] private Tilemap _tilemapUI2; // Référence à la Tilemap
+    [SerializeField] private TileMapVisualizer _tileMapVisualizer;
+    [SerializeField] private SimpleMapGenerator _simpleMapGenerator;
+    [SerializeField] private Button _startPosition;
 
-    [SerializeField] private TileBase selectTileBase;
-    [SerializeField] private TileBase startTileBase;
-    [SerializeField] private TileBase hoverTileBase;
-    private List<Vector3Int> previousClickedTiles = new();
-    private Vector3Int previousHoveredTile;
-    [SerializeField] private UnityEvent BlockRun;
-    [SerializeField] private UnityEvent UnBlockRun;
+    [SerializeField] private TileBase _selectTileBase;
+    [SerializeField] private TileBase _startTileBase;
+    [SerializeField] private TileBase _hoverTileBase;
+    private List<Vector3Int> _previousClickedTiles = new();
+    private Vector3Int _previousHoveredTile;
+    [SerializeField] private UnityEvent _blockRun;
+    [SerializeField] private UnityEvent _unBlockRun;
+    [SerializeField] private Image _imageBlocker;
 
     private void Start()
     {
-        tilemap = GetComponent<Tilemap>();
-        tilemap.GetComponent<TilemapRenderer>().sortingOrder = 0;
-        tilemapUI.GetComponent<TilemapRenderer>().sortingOrder = 1;
-        tilemapUI2.GetComponent<TilemapRenderer>().sortingOrder = 2;
+        _tilemap = GetComponent<Tilemap>();
+        _tilemap.GetComponent<TilemapRenderer>().sortingOrder = 0;
+        _tilemapUI.GetComponent<TilemapRenderer>().sortingOrder = 1;
+        _tilemapUI2.GetComponent<TilemapRenderer>().sortingOrder = 2;
     }
 
-   
+
     public void OnPointerClick(PointerEventData eventData)
     {
         // Convertir la position du clic de la souris en coordonnées du monde
         Vector3 worldPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-        worldPosition.z = tilemap.transform.position.z; // Ajuster la profondeur Z
+        worldPosition.z = _tilemap.transform.position.z; // Ajuster la profondeur Z
 
         // Convertir les coordonnées du monde en coordonnées de cellule
-        Vector3Int cellPosition = tilemap.WorldToCell(worldPosition);
+        Vector3Int cellPosition = _tilemap.WorldToCell(worldPosition);
         OnClickTile(cellPosition);
 
     }
 
     public void OnClickTile(Vector3Int cellPosition)
     {
-        if (tilemapUI.GetTile(cellPosition) == selectTileBase &&
-         (Input.GetKey(KeyCode.LeftControl) || (!Input.GetKey(KeyCode.LeftControl) && previousClickedTiles.Count == 1)))
+        if (_tilemapUI.GetTile(cellPosition) == _selectTileBase &&
+         (Input.GetKey(KeyCode.LeftControl) || (!Input.GetKey(KeyCode.LeftControl) && _previousClickedTiles.Count == 1)))
         {
-            tilemapUI.SetTile(cellPosition, null);
-            previousClickedTiles.Remove(cellPosition);
+            _tilemapUI.SetTile(cellPosition, null);
+            _previousClickedTiles.Remove(cellPosition);
         }
         else
         {
 
             if (!Input.GetKey(KeyCode.LeftControl))
             {
-                foreach (var position in previousClickedTiles)
+                foreach (var position in _previousClickedTiles)
                 {
-                    tilemapUI.SetTile(position, null);
+                    _tilemapUI.SetTile(position, null);
                 }
-                previousClickedTiles.Clear();
+                _previousClickedTiles.Clear();
             }
-            tilemapUI.SetTile(cellPosition, selectTileBase);
-            previousClickedTiles.Add(cellPosition);
+            _tilemapUI.SetTile(cellPosition, _selectTileBase);
+            _previousClickedTiles.Add(cellPosition);
         }
-        startPosition.interactable = previousClickedTiles.Count == 1;
+        _startPosition.interactable = _previousClickedTiles.Count == 1;
     }
 
     private void Update()
     {
+        if (_imageBlocker.raycastTarget)
+        { // //  Convertir la position du clic de la souris en coordonnées du monde
+            Vector3 worldPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+            worldPosition.z = _tilemap.transform.position.z; // Ajuster la profondeur Z
 
-        // //  Convertir la position du clic de la souris en coordonnées du monde
-        Vector3 worldPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-        worldPosition.z = tilemap.transform.position.z; // Ajuster la profondeur Z
+            // // Convertir les coordonnées du monde en coordonnées de cellule
+            Vector3Int cellPosition = _tilemap.WorldToCell(worldPosition);
 
-        // // Convertir les coordonnées du monde en coordonnées de cellule
-        Vector3Int cellPosition = tilemap.WorldToCell(worldPosition);
+            if (_tilemapUI.GetTile(_previousHoveredTile) == _hoverTileBase)
+            {
+                _tilemapUI.SetTile(_previousHoveredTile, null);
+            }
+            if (_tilemapUI.GetTile(cellPosition) != _selectTileBase)
+                _tilemapUI.SetTile(cellPosition, _hoverTileBase);
+            _previousHoveredTile = cellPosition;
 
-        if (tilemapUI.GetTile(previousHoveredTile) == hoverTileBase)
-        {
-            tilemapUI.SetTile(previousHoveredTile, null);
-        }
-        if (tilemapUI.GetTile(cellPosition) != selectTileBase)
-            tilemapUI.SetTile(cellPosition, hoverTileBase);
-        previousHoveredTile = cellPosition;
+            if (Input.GetMouseButtonDown(0) && _tilemap.GetTile(cellPosition) == null && !EventSystem.current.IsPointerOverGameObject())
+            {
+                _tileMapVisualizer.AddTile(cellPosition, TileType.Floor);
+            }
 
-        if (Input.GetMouseButtonDown(0) && tilemap.GetTile(cellPosition) == null && !EventSystem.current.IsPointerOverGameObject())
-        {
-            tileMapVisualizer.AddTile(cellPosition, TileType.Floor);
-        }
-
-        if (Input.GetKey(KeyCode.Delete))
-        {
-            DeleteTiles();
+            if (Input.GetKey(KeyCode.Delete))
+            {
+                DeleteTiles();
+            }
         }
     }
 
     public void DeleteTiles()
     {
 
-        foreach (var tilePos in previousClickedTiles)
+        foreach (var tilePos in _previousClickedTiles)
         {
-            if (tilemapUI2.GetTile(tilePos) != startTileBase)
+            if (_tilemapUI2.GetTile(tilePos) != _startTileBase)
             {
-                tilemap.SetTile(tilePos, null);
-                tilemapUI.SetTile(tilePos, null);
-                simpleMapGenerator.DeleteTile(tilePos);
+                _tilemap.SetTile(tilePos, null);
+                _tilemapUI.SetTile(tilePos, null);
+                _simpleMapGenerator.DeleteTile(tilePos);
             }
-            tilemapUI.SetTile(tilePos, null);
+            _tilemapUI.SetTile(tilePos, null);
         }
-        previousClickedTiles.Clear();
-        startPosition.interactable = previousClickedTiles.Count == 1;
+        _previousClickedTiles.Clear();
+        _startPosition.interactable = _previousClickedTiles.Count == 1;
 
     }
 
     public void SetStartPosition()
     {
-        tilemapUI2.SetTile(simpleMapGenerator.GetStartPosition(), null);
-        simpleMapGenerator.SetStartPosition(previousClickedTiles[0]);
-        tilemapUI2.SetTile(previousClickedTiles[0], startTileBase);
-        UnBlockRun.Invoke();
+        _tilemapUI2.SetTile(_simpleMapGenerator.GetStartPosition(), null);
+        _simpleMapGenerator.SetStartPosition(_previousClickedTiles[0]);
+        _tilemapUI2.SetTile(_previousClickedTiles[0], _startTileBase);
+        _unBlockRun.Invoke();
     }
     public void ResetStartPosition()
     {
-        tilemapUI2.SetTile(simpleMapGenerator.GetStartPosition(), null);
-        BlockRun.Invoke();
+        _tilemapUI2.SetTile(_simpleMapGenerator.GetStartPosition(), null);
+        _blockRun.Invoke();
     }
 
     public void ChangeTileType(int tileType)
     {
-        foreach (var tile in previousClickedTiles)
+        foreach (var tile in _previousClickedTiles)
         {
-            simpleMapGenerator.SetTileType(tile, tileType);
-            tilemapUI.SetTile(tile, null);
+            _simpleMapGenerator.SetTileType(tile, tileType);
+            _tilemapUI.SetTile(tile, null);
         }
-        previousClickedTiles.Clear();
-        startPosition.interactable = previousClickedTiles.Count == 1;
+        _previousClickedTiles.Clear();
+        _startPosition.interactable = _previousClickedTiles.Count == 1;
 
 
     }

@@ -12,62 +12,62 @@ using UnityEngine.UI;
 
 public class FloorsEditorManager : MonoBehaviour
 {
-    [SerializeField] private TileMapVisualizer tileMapVisualizer;
-    [SerializeField] private TMP_InputField AddFloorInputField;
-    [SerializeField] private Button SaveButton;
-    [SerializeField] private GameObject TryToDeteLastLayerErrorText;
-    private TMP_Dropdown dropdown;
-    private int currentFloor = 0;
-    private int previousFloor = 0;
+    [SerializeField] private TileMapVisualizer _tileMapVisualizer;
+    [SerializeField] private TMP_InputField _addFloorInputField;
+    [SerializeField] private Button _saveButton;
+    [SerializeField] private GameObject _tryToDeteLastLayerErrorText;
+    private TMP_Dropdown _dropdown;
+    private int _currentFloor = 0;
+    private int _previousFloor = 0;
     private void Start()
     {
-        dropdown = GetComponent<TMP_Dropdown>();
-        dropdown.ClearOptions();
-        for (int i = 0; i < MazeData.mazeFloors.Count; i++)
+        _dropdown = GetComponent<TMP_Dropdown>();
+        _dropdown.ClearOptions();
+        for (int i = 0; i < MazeData.MazeFloors.Count; i++)
         {
-            dropdown.options.Add(new TMP_Dropdown.OptionData(MazeData.mazeFloors[i].name));
+            _dropdown.options.Add(new TMP_Dropdown.OptionData(MazeData.MazeFloors[i].Name));
         }
 
-        dropdown.RefreshShownValue(); // Mettre à jour l'affichage du dropdown
+        _dropdown.RefreshShownValue(); // Mettre à jour l'affichage du dropdown
 
     }
 
     public void SetCurrentFloorSelected(int current)
     {
-        previousFloor = currentFloor;
-        currentFloor = current;
+        _previousFloor = _currentFloor;
+        _currentFloor = current;
     }
 
     
     public int GetCurrentFloorSelected()
     {
-        return currentFloor;
+        return _currentFloor;
     }
 
 
 
     public void DeleteFloor()
     {
-        if (dropdown.options.Count > 1)
+        if (_dropdown.options.Count > 1)
         {
-            dropdown.options.RemoveAt(currentFloor);
-            if (currentFloor > 0)
+            _dropdown.options.RemoveAt(_currentFloor);
+            if (_currentFloor > 0)
             {
-                MazeData.mazeFloors.RemoveAt(currentFloor);
-                dropdown.onValueChanged.Invoke(currentFloor - 1);
-                dropdown.RefreshShownValue();
+                MazeData.MazeFloors.RemoveAt(_currentFloor);
+                _dropdown.onValueChanged.Invoke(_currentFloor - 1);
+                _dropdown.RefreshShownValue();
             }
-            else if (dropdown.options.Count > 0)
+            else if (_dropdown.options.Count > 0)
             {
-                MazeData.mazeFloors.RemoveAt(currentFloor);
-                dropdown.onValueChanged.Invoke(currentFloor);
-                dropdown.RefreshShownValue();
+                MazeData.MazeFloors.RemoveAt(_currentFloor);
+                _dropdown.onValueChanged.Invoke(_currentFloor);
+                _dropdown.RefreshShownValue();
             }
         }
         else
         {
-            TryToDeteLastLayerErrorText.SetActive(true);
-            ExecuteActionDelayed(new Action(() => TryToDeteLastLayerErrorText.SetActive(false)), 6000);
+            _tryToDeteLastLayerErrorText.SetActive(true);
+            ExecuteActionDelayed(new Action(() => _tryToDeteLastLayerErrorText.SetActive(false)), 6000);
         }
     }
 
@@ -80,27 +80,27 @@ public class FloorsEditorManager : MonoBehaviour
 
     public void SaveFloor()
     {
-        MazeData.mazeFloors[currentFloor].name = dropdown.options[currentFloor].text;
-        if (MazeData.mazeFloors[currentFloor].tileMap == null)
-            MazeData.mazeFloors[currentFloor].tileMap = new();
-        MazeData.mazeFloors[currentFloor].tileMap.Clear();
-        MazeData.mazeFloors[currentFloor].tileMap = new(tileMapVisualizer.GetMapTiles().ToList());
+        MazeData.MazeFloors[_currentFloor].Name = _dropdown.options[_currentFloor].text;
+        if (MazeData.MazeFloors[_currentFloor].TileMap == null)
+            MazeData.MazeFloors[_currentFloor].TileMap = new();
+        MazeData.MazeFloors[_currentFloor].TileMap.Clear();
+        MazeData.MazeFloors[_currentFloor].TileMap = new(_tileMapVisualizer.GetMapTiles().ToList());
 
         SetSaveButtonInteractability(false);
     }
 
     public void SetSaveButtonInteractability(bool value)
     {
-        if (value != SaveButton.interactable)
-            SaveButton.interactable = value;
+        if (value != _saveButton.interactable)
+            _saveButton.interactable = value;
     }
 
     public void AddFloor()
     {
-        if (AddFloorInputField.text != "")
+        if (_addFloorInputField.text != "")
         {
-            dropdown.options.Add(new TMP_Dropdown.OptionData(AddFloorInputField.text));
-            MazeData.mazeFloors.Add(new FloorData(){name=AddFloorInputField.text, entreeSorties=new(),tileMap=new()});
+            _dropdown.options.Add(new TMP_Dropdown.OptionData(_addFloorInputField.text));
+            MazeData.MazeFloors.Add(new FloorData(){Name=_addFloorInputField.text, EntreeSorties=new(),TileMap=new()});
         }
         else
         {
