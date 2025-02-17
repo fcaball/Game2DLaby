@@ -7,6 +7,7 @@ using UnityEngine;
 
 public class BuildScript
 {
+   [MenuItem("Tools/testBuild")]
     public static void BuildMazeGeneratorWithWindowsProfile()
     {
         // string currentVersion = System.Environment.GetEnvironmentVariable("BUILD_VERSION");
