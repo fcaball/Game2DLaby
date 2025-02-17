@@ -1,4 +1,5 @@
 using System.IO;
+using System.Threading.Tasks;
 using UnityEditor;
 using UnityEditor.Build.Reporting;
 using UnityEngine;
@@ -7,10 +8,10 @@ using UnityEngine.Networking;
 
 public class BuildScript
 {
-    public static void BuildMazeGeneratorWithWindowsProfile()
+    public static async Task BuildMazeGeneratorWithWindowsProfile()
     {
         // Mise à jour et sauvegarde de la version
-        PlayerSettings.bundleVersion = IncrementBuildVersion(GetVersionFromServer());
+        PlayerSettings.bundleVersion = IncrementBuildVersion(await GetVersionFromServer());
         PlayerSettings.productName="MazeGenerator";
         AssetDatabase.SaveAssets();
 
@@ -55,11 +56,11 @@ public class BuildScript
         return currentVersion;
     }
 
-     public static string GetVersionFromServer()
+     public static async Task<string> GetVersionFromServer()
     {
         using (UnityWebRequest request = UnityWebRequest.Get("https://fabiencaballero.fr/MazeGenerator/version.php"))
         {
-            request.SendWebRequest();
+            await request.SendWebRequest();
 
             if (request.result == UnityWebRequest.Result.Success)
             {
