@@ -95,7 +95,7 @@ public class PointerClickGrid : MonoBehaviour, IPointerClickHandler/* , IPointer
                 _tileMapVisualizer.AddTile(cellPosition, TileType.Floor);
             }
 
-            if (Input.GetKey(KeyCode.Delete) || Input.GetKey(KeyCode.Return))
+            if (Input.GetKey(KeyCode.Delete) || Input.GetKey(KeyCode.Backspace))
             {
                 DeleteTiles();
             }
