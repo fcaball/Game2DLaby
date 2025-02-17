@@ -11,7 +11,7 @@ public class BuildScript
     public static void BuildMazeGeneratorWithWindowsProfile()
     {
         // string currentVersion = System.Environment.GetEnvironmentVariable("BUILD_VERSION");
-        string currentBuildVersion=File.ReadAllText("../version.txt").Trim();
+        string currentBuildVersion=File.ReadAllText("D:\\a\\Game2DLaby\\version.txt").Trim();
 
         // Mise à jour et sauvegarde de la version
         PlayerSettings.bundleVersion = IncrementBuildVersion(currentBuildVersion);
