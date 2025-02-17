@@ -41,7 +41,7 @@ jobs:
           $version = ($response.Content | ConvertFrom-Json).version
           echo "Version récupérée: $version"
           
-          $versionFilePath = "Assets/Resources/version.txt"
+          $versionFilePath = "../version.txt"
           $directoryPath = [System.IO.Path]::GetDirectoryName($versionFilePath)
           if (!(Test-Path $directoryPath)) {
               New-Item -ItemType Directory -Path $directoryPath -Force
