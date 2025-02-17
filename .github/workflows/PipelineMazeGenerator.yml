@@ -47,7 +47,8 @@ jobs:
               New-Item -ItemType Directory -Path $directoryPath -Force
           }
 
-          echo " $version save in file $versionFilePath" | Out-File -FilePath $versionFilePath -Encoding utf8
+          echo $version | Out-File -FilePath $versionFilePath -Encoding utf8
+          echo " $version save in file $versionFilePath"
 
 
       - name: Build with Unity
