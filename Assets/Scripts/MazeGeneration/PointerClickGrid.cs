@@ -74,7 +74,7 @@ public class PointerClickGrid : MonoBehaviour, IPointerClickHandler/* , IPointer
 
     private void Update()
     {
-        if (_imageBlocker.raycastTarget)
+        if (!_imageBlocker.raycastTarget)
         { // //  Convertir la position du clic de la souris en coordonnées du monde
             Vector3 worldPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
             worldPosition.z = _tilemap.transform.position.z; // Ajuster la profondeur Z
@@ -95,7 +95,7 @@ public class PointerClickGrid : MonoBehaviour, IPointerClickHandler/* , IPointer
                 _tileMapVisualizer.AddTile(cellPosition, TileType.Floor);
             }
 
-            if (Input.GetKey(KeyCode.Delete))
+            if (Input.GetKey(KeyCode.Delete) || Input.GetKey(KeyCode.Return))
             {
                 DeleteTiles();
             }
