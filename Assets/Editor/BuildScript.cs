@@ -9,7 +9,8 @@ public class BuildScript
 {
     public static void BuildMazeGeneratorWithWindowsProfile()
     {
-        string currentVersion = System.Environment.GetEnvironmentVariable("BUILD_VERSION");
+        // string currentVersion = System.Environment.GetEnvironmentVariable("BUILD_VERSION");
+        string currentVersion="0.0.1";
 
         // Mise à jour et sauvegarde de la version
         PlayerSettings.bundleVersion = IncrementBuildVersion(currentVersion);
