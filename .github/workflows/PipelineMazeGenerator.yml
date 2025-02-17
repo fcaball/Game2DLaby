@@ -34,13 +34,20 @@ jobs:
           restore-keys: |
             Library-${{ runner.os }}-
 
-      -   name: Get current version from server
-          shell: powershell
-          run: |
-            $response = Invoke-WebRequest -Uri "https://fabiencaballero.fr/MazeGenerator/version.php" -UseBasicParsing
-            $version = ($response.Content | ConvertFrom-Json).version
-            echo "Current version: $version"
-            echo $version > "Assets/Resources/version.txt"
+      - name: Get current version from server
+        shell: powershell
+        run: |
+          $response = Invoke-WebRequest -Uri "https://fabiencaballero.fr/MazeGenerator/version.php" -UseBasicParsing
+          $version = ($response.Content | ConvertFrom-Json).version
+          echo "Version récupérée: $version"
+          
+          $versionFilePath = "Assets/Resources/version.txt"
+          $directoryPath = [System.IO.Path]::GetDirectoryName($versionFilePath)
+          if (!(Test-Path $directoryPath)) {
+              New-Item -ItemType Directory -Path $directoryPath -Force
+          }
+
+          echo $version | Out-File -FilePath $versionFilePath -Encoding utf8
 
 
       - name: Build with Unity
