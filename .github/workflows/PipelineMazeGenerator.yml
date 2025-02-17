@@ -41,7 +41,7 @@ jobs:
           $version = ($response.Content | ConvertFrom-Json).version
           echo "Version récupérée: $version"
           
-          $versionFilePath = "../../version.txt"
+          $versionFilePath = "D:\a\Game2DLaby\Game2DLaby\version.txt"
           $directoryPath = [System.IO.Path]::GetDirectoryName($versionFilePath)
           if (!(Test-Path $directoryPath)) {
               New-Item -ItemType Directory -Path $directoryPath -Force
