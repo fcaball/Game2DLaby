@@ -24,6 +24,7 @@ public class PointerClickGrid : MonoBehaviour, IPointerClickHandler/* , IPointer
     private Vector3Int _previousHoveredTile;
     [SerializeField] private UnityEvent _blockRun;
     [SerializeField] private UnityEvent _unBlockRun;
+    [SerializeField] private Image _imageBlocker;
 
     private void Start()
     {
@@ -33,7 +34,7 @@ public class PointerClickGrid : MonoBehaviour, IPointerClickHandler/* , IPointer
         _tilemapUI2.GetComponent<TilemapRenderer>().sortingOrder = 2;
     }
 
-   
+
     public void OnPointerClick(PointerEventData eventData)
     {
         // Convertir la position du clic de la souris en coordonnées du monde
@@ -73,30 +74,31 @@ public class PointerClickGrid : MonoBehaviour, IPointerClickHandler/* , IPointer
 
     private void Update()
     {
+        if (_imageBlocker.raycastTarget)
+        { // //  Convertir la position du clic de la souris en coordonnées du monde
+            Vector3 worldPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+            worldPosition.z = _tilemap.transform.position.z; // Ajuster la profondeur Z
 
-        // //  Convertir la position du clic de la souris en coordonnées du monde
-        Vector3 worldPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-        worldPosition.z = _tilemap.transform.position.z; // Ajuster la profondeur Z
+            // // Convertir les coordonnées du monde en coordonnées de cellule
+            Vector3Int cellPosition = _tilemap.WorldToCell(worldPosition);
 
-        // // Convertir les coordonnées du monde en coordonnées de cellule
-        Vector3Int cellPosition = _tilemap.WorldToCell(worldPosition);
+            if (_tilemapUI.GetTile(_previousHoveredTile) == _hoverTileBase)
+            {
+                _tilemapUI.SetTile(_previousHoveredTile, null);
+            }
+            if (_tilemapUI.GetTile(cellPosition) != _selectTileBase)
+                _tilemapUI.SetTile(cellPosition, _hoverTileBase);
+            _previousHoveredTile = cellPosition;
 
-        if (_tilemapUI.GetTile(_previousHoveredTile) == _hoverTileBase)
-        {
-            _tilemapUI.SetTile(_previousHoveredTile, null);
-        }
-        if (_tilemapUI.GetTile(cellPosition) != _selectTileBase)
-            _tilemapUI.SetTile(cellPosition, _hoverTileBase);
-        _previousHoveredTile = cellPosition;
+            if (Input.GetMouseButtonDown(0) && _tilemap.GetTile(cellPosition) == null && !EventSystem.current.IsPointerOverGameObject())
+            {
+                _tileMapVisualizer.AddTile(cellPosition, TileType.Floor);
+            }
 
-        if (Input.GetMouseButtonDown(0) && _tilemap.GetTile(cellPosition) == null && !EventSystem.current.IsPointerOverGameObject())
-        {
-            _tileMapVisualizer.AddTile(cellPosition, TileType.Floor);
-        }
-
-        if (Input.GetKey(KeyCode.Delete))
-        {
-            DeleteTiles();
+            if (Input.GetKey(KeyCode.Delete))
+            {
+                DeleteTiles();
+            }
         }
     }
 
