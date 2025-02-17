@@ -2,6 +2,7 @@ using System.IO;
 using UnityEditor;
 using UnityEditor.Build.Reporting;
 using UnityEngine;
+using UnityEngine.Networking;
 
 
 public class BuildScript
@@ -9,7 +10,8 @@ public class BuildScript
     public static void BuildMazeGeneratorWithWindowsProfile()
     {
         // Mise à jour et sauvegarde de la version
-        PlayerSettings.bundleVersion = IncrementBuildVersion();
+        PlayerSettings.bundleVersion = IncrementBuildVersion(GetVersionFromServer());
+        PlayerSettings.productName="MazeGenerator";
         AssetDatabase.SaveAssets();
 
         // Définir le chemin de sortie
@@ -19,6 +21,7 @@ public class BuildScript
         {
             Directory.CreateDirectory(buildFolder);
         }
+        
 
         string[] scenes = new string[] { "Assets/Scenes/MazeGenerator.unity" };
 
@@ -40,9 +43,8 @@ public class BuildScript
         }
     }
 
-    static string IncrementBuildVersion()
+    static string IncrementBuildVersion(string currentVersion)
     {
-        string currentVersion = PlayerSettings.bundleVersion;
         string[] parts = currentVersion.Split('.');
 
         if (parts.Length == 3 && int.TryParse(parts[2], out int patchVersion))
@@ -52,4 +54,26 @@ public class BuildScript
         }
         return currentVersion;
     }
+
+     public static string GetVersionFromServer()
+    {
+        using (UnityWebRequest request = UnityWebRequest.Get("https://fabiencaballero.fr/MazeGenerator/version.php"))
+        {
+            request.SendWebRequest();
+
+            if (request.result == UnityWebRequest.Result.Success)
+            {
+                string json = request.downloadHandler.text;
+                string versionData = JsonUtility.FromJson<string>(json);
+                Debug.Log($"version : {versionData}");
+                return versionData;
+            }
+            else
+            {
+                Debug.LogError("❌ Erreur lors de la récupération de la version : " + request.error);
+                return"0.0.0"; // Valeur par défaut en cas d'erreur
+            }
+        }
+    }
+
 }
