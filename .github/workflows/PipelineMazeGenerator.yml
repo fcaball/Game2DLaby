@@ -34,14 +34,14 @@ jobs:
           restore-keys: |
             Library-${{ runner.os }}-
 
-      - name: Install jq (if needed)
-        run: sudo apt-get install -y jq
+      -   name: Get current version from server
+          shell: powershell
+          run: |
+            $response = Invoke-WebRequest -Uri "https://fabiencaballero.fr/MazeGenerator/version.php" -UseBasicParsing
+            $version = ($response.Content | ConvertFrom-Json).version
+            echo "Current version: $version"
+            echo "UNITY_VERSION=$version" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8
 
-      - name: Get current version from server
-        run: |
-          VERSION=$(curl -s https://fabiencaballero.fr/MazeGenerator/version.php | jq -r '.version')
-          echo "Current version: $VERSION"
-          echo "BUILD_VERSION=$VERSION" >> $GITHUB_ENV
 
       - name: Build with Unity
         uses: game-ci/unity-builder@v4
