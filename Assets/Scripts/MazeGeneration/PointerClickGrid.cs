@@ -141,6 +141,7 @@ public class PointerClickGrid : MonoBehaviour, IPointerClickHandler/* , IPointer
             _tilemapUI.SetTile(tile, null);
         }
         _previousClickedTiles.Clear();
+        _tilemapUI2.ClearAllTiles();
         _startPosition.interactable = _previousClickedTiles.Count == 1;
 
 
