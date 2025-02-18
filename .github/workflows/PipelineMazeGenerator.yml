@@ -46,7 +46,7 @@ jobs:
       - name: Unity Build
         shell: powershell
         run: |
-          Start-Process -NoNewWindow -Wait -FilePath "C:\Program Files\Unity\Hub\Editor\6000.0.32f1\Editor\Unity.exe" -ArgumentList `
+          Start-Process -NoNewWindow -Wait -FilePath "D:\Program Files\Unity\Hub\Editor\6000.0.32f1\Editor\Unity.exe" -ArgumentList `
             "-batchmode", `
             "-nographics", `
             "-projectPath `"$env:GITHUB_WORKSPACE`"", `
