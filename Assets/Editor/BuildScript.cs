@@ -12,19 +12,11 @@ public class BuildScript
     {
         // string currentVersion = System.Environment.GetEnvironmentVariable("BUILD_VERSION");
         // string currentBuildVersion=File.ReadAllText("D:\\a\\Game2DLaby\\version.txt").Trim();
-        string[] args = System.Environment.GetCommandLineArgs();
 
         // Mise à jour et sauvegarde de la version
         string version = "1.0.0"; // Valeur par défaut
+        version = System.Environment.GetEnvironmentVariable("version");
 
-        for (int i = 0; i < args.Length; i++)
-        {
-            if (args[i] == "-version" && i + 1 < args.Length)
-            {
-                version = args[i + 1];
-                break;
-            }
-        }
 
         Debug.Log($"📌 Version reçue depuis GitHub Actions : {version}");
 
