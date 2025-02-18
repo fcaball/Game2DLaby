@@ -7,15 +7,29 @@ using UnityEngine;
 
 public class BuildScript
 {
-   [MenuItem("Tools/testBuild")]
-    public static void BuildMazeGeneratorWithWindowsProfile(/* string version */)
+    [MenuItem("Tools/testBuild")]
+    public static void BuildMazeGeneratorWithWindowsProfile(/* string version */string[] args)
     {
         // string currentVersion = System.Environment.GetEnvironmentVariable("BUILD_VERSION");
         // string currentBuildVersion=File.ReadAllText("D:\\a\\Game2DLaby\\version.txt").Trim();
 
         // Mise à jour et sauvegarde de la version
-        PlayerSettings.bundleVersion = IncrementBuildVersion("1.0.0");
-        PlayerSettings.productName="MazeGenerator";
+        string version = "1.0.0"; // Valeur par défaut
+
+        for (int i = 0; i < args.Length; i++)
+        {
+            if (args[i] == "-version" && i + 1 < args.Length)
+            {
+                version = args[i + 1];
+                break;
+            }
+        }
+
+        Debug.Log($"📌 Version reçue depuis GitHub Actions : {version}");
+
+        // ✅ Mettre à jour la version
+        PlayerSettings.bundleVersion = IncrementBuildVersion(version);
+        PlayerSettings.productName = "MazeGenerator";
         AssetDatabase.SaveAssets();
 
         // Définir le chemin de sortie
@@ -25,7 +39,7 @@ public class BuildScript
         {
             Directory.CreateDirectory(buildFolder);
         }
-        
+
 
         string[] scenes = new string[] { "Assets/Scenes/MazeGenerator.unity" };
 
@@ -59,5 +73,5 @@ public class BuildScript
         }
         return currentVersion;
     }
-    
+
 }
