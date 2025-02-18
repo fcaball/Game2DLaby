@@ -20,38 +20,38 @@ public class BuildScript
 
         Debug.Log($"📌 Version reçue depuis GitHub Actions : {version}");
 
-        // ✅ Mettre à jour la version
-        PlayerSettings.bundleVersion = IncrementBuildVersion(version);
-        PlayerSettings.productName = "MazeGenerator";
-        AssetDatabase.SaveAssets();
+        // // ✅ Mettre à jour la version
+        // PlayerSettings.bundleVersion = IncrementBuildVersion(version);
+        // PlayerSettings.productName = "MazeGenerator";
+        // AssetDatabase.SaveAssets();
 
-        // Définir le chemin de sortie
-        string buildFolder = "MazeBuilds/Windows";
-        string buildPath = $"{buildFolder}/MazeGenerator.exe"; // Exécutable Windows
-        if (!Directory.Exists(buildFolder))
-        {
-            Directory.CreateDirectory(buildFolder);
-        }
+        // // Définir le chemin de sortie
+        // string buildFolder = "MazeBuilds/Windows";
+        // string buildPath = $"{buildFolder}/MazeGenerator.exe"; // Exécutable Windows
+        // if (!Directory.Exists(buildFolder))
+        // {
+        //     Directory.CreateDirectory(buildFolder);
+        // }
 
 
-        string[] scenes = new string[] { "Assets/Scenes/MazeGenerator.unity" };
+        // string[] scenes = new string[] { "Assets/Scenes/MazeGenerator.unity" };
 
-        // Lancer le build
-        BuildReport report = BuildPipeline.BuildPlayer(scenes, buildPath, BuildTarget.StandaloneWindows, BuildOptions.None);
-        BuildSummary summary = report.summary;
+        // // Lancer le build
+        // BuildReport report = BuildPipeline.BuildPlayer(scenes, buildPath, BuildTarget.StandaloneWindows, BuildOptions.None);
+        // BuildSummary summary = report.summary;
 
-        if (summary.result == BuildResult.Succeeded)
-        {
-            Debug.Log($"✅ Build réussi : {summary.totalSize} bytes");
-            string newversion = PlayerSettings.bundleVersion;
+        // if (summary.result == BuildResult.Succeeded)
+        // {
+        //     Debug.Log($"✅ Build réussi : {summary.totalSize} bytes");
+        //     string newversion = PlayerSettings.bundleVersion;
 
-            // Sauvegarder la version
-            File.WriteAllText($"{buildFolder}/version.txt", newversion);
-        }
-        else
-        {
-            Debug.LogError("❌ Build échoué !");
-        }
+        //     // Sauvegarder la version
+        //     File.WriteAllText($"{buildFolder}/version.txt", newversion);
+        // }
+        // else
+        // {
+        //     Debug.LogError("❌ Build échoué !");
+        // }
     }
 
     static string IncrementBuildVersion(string currentVersion)
