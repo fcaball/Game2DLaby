@@ -53,7 +53,7 @@ jobs:
         with:
           targetPlatform: ${{ matrix.targetPlatform }}
           buildMethod: BuildScript.BuildMazeGeneratorWithWindowsProfile
-          customParameters: -currentBuildVersion ${{env.BUILD_VERSION}}
+          customParameters: -currentBuildVersion 1.0.0
 
       - name: Upload Build Artifact
         uses: actions/upload-artifact@v4
