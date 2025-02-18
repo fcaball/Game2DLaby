@@ -8,10 +8,11 @@ using UnityEngine;
 public class BuildScript
 {
     [MenuItem("Tools/testBuild")]
-    public static void BuildMazeGeneratorWithWindowsProfile(/* string version */string[] args)
+    public static void BuildMazeGeneratorWithWindowsProfile(/* string version */)
     {
         // string currentVersion = System.Environment.GetEnvironmentVariable("BUILD_VERSION");
         // string currentBuildVersion=File.ReadAllText("D:\\a\\Game2DLaby\\version.txt").Trim();
+        string[] args = System.Environment.GetCommandLineArgs();
 
         // Mise à jour et sauvegarde de la version
         string version = "1.0.0"; // Valeur par défaut
