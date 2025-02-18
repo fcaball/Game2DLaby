@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using Codice.Client.Common;
 using UnityEditor;
@@ -13,45 +14,49 @@ public class BuildScript
         // string currentVersion = System.Environment.GetEnvironmentVariable("BUILD_VERSION");
 
         // Mise à jour et sauvegarde de la version
-        string version = "1.0.0"; // Valeur par défaut
-        // string currentBuildVersion=File.ReadAllText("D:\\a\\Game2DLaby\\version.txt").Trim();
-        version = System.Environment.GetEnvironmentVariable("version");
-
-
+        // Récupération des arguments passés via la ligne de commande
+        string[] args = Environment.GetCommandLineArgs();
+        
+        // Vérifier s'il y a un argument après "--"
+        string version = "default_version"; // Valeur par défaut si aucun argument n'est trouvé
+        if (args.Length > 1)
+        {
+            version = args[args.Length - 1]; // Récupérer le dernier argument (1.0.12 dans ce cas)
+        }
         Debug.Log($"📌 Version reçue depuis GitHub Actions : {version}");
 
         // // ✅ Mettre à jour la version
-        // PlayerSettings.bundleVersion = IncrementBuildVersion(version);
-        // PlayerSettings.productName = "MazeGenerator";
-        // AssetDatabase.SaveAssets();
+        PlayerSettings.bundleVersion = IncrementBuildVersion(version);
+        PlayerSettings.productName = "MazeGenerator";
+        AssetDatabase.SaveAssets();
 
-        // // Définir le chemin de sortie
-        // string buildFolder = "MazeBuilds/Windows";
-        // string buildPath = $"{buildFolder}/MazeGenerator.exe"; // Exécutable Windows
-        // if (!Directory.Exists(buildFolder))
-        // {
-        //     Directory.CreateDirectory(buildFolder);
-        // }
+        // Définir le chemin de sortie
+        string buildFolder = "MazeBuilds/Windows";
+        string buildPath = $"{buildFolder}/MazeGenerator.exe";
+        if (!Directory.Exists(buildFolder))
+        {
+            Directory.CreateDirectory(buildFolder);
+        }
 
 
-        // string[] scenes = new string[] { "Assets/Scenes/MazeGenerator.unity" };
+        string[] scenes = new string[] { "Assets/Scenes/MazeGenerator.unity" };
 
-        // // Lancer le build
-        // BuildReport report = BuildPipeline.BuildPlayer(scenes, buildPath, BuildTarget.StandaloneWindows, BuildOptions.None);
-        // BuildSummary summary = report.summary;
+        // Lancer le build
+        BuildReport report = BuildPipeline.BuildPlayer(scenes, buildPath, BuildTarget.StandaloneWindows, BuildOptions.None);
+        BuildSummary summary = report.summary;
 
-        // if (summary.result == BuildResult.Succeeded)
-        // {
-        //     Debug.Log($"✅ Build réussi : {summary.totalSize} bytes");
-        //     string newversion = PlayerSettings.bundleVersion;
+        if (summary.result == BuildResult.Succeeded)
+        {
+            Debug.Log($"✅ Build réussi : {summary.totalSize} bytes");
+            string newversion = PlayerSettings.bundleVersion;
 
-        //     // Sauvegarder la version
-        //     File.WriteAllText($"{buildFolder}/version.txt", newversion);
-        // }
-        // else
-        // {
-        //     Debug.LogError("❌ Build échoué !");
-        // }
+            // Sauvegarder la version
+            File.WriteAllText($"{buildFolder}/version.txt", newversion);
+        }
+        else
+        {
+            Debug.LogError("❌ Build échoué !");
+        }
     }
 
     static string IncrementBuildVersion(string currentVersion)

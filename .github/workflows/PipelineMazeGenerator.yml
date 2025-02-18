@@ -42,17 +42,30 @@ jobs:
           echo "Version récupérée: $version"
           echo "VERSION=$version" >> $env:GITHUB_ENV
 
-      - name: Build with Unity
-        uses: game-ci/unity-builder@v4
-        timeout-minutes: 50
-        env:
-          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
-          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
-          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
-        with:
-          targetPlatform: ${{ matrix.targetPlatform }}
-          buildMethod: BuildScript.BuildMazeGeneratorWithWindowsProfile
-          customParameters: -version ${{env.VERSION}}
+
+      - name: Unity Build
+        shell: powershell
+        run: |
+          Start-Process -NoNewWindow -Wait -FilePath "C:\Program Files\Unity\Hub\Editor\6000.0.32f1\Editor\Unity.exe" -ArgumentList `
+            "-batchmode", `
+            "-nographics", `
+            "-projectPath `"$env:GITHUB_WORKSPACE`"", `
+            "-executeMethod BuildScript.BuildMazeGeneratorWithWindowsProfile", `
+            "--", "1.0.12", `
+            "-quit", `
+            "-logFile unity_log.txt"
+
+      # - name: Build with Unity
+      #   uses: game-ci/unity-builder@v4
+      #   timeout-minutes: 50
+      #   env:
+      #     UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+      #     UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+      #     UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+      #   with:
+      #     targetPlatform: ${{ matrix.targetPlatform }}
+      #     buildMethod: BuildScript.BuildMazeGeneratorWithWindowsProfile
+      #     customParameters: -version ${{env.VERSION}}
 
   #     - name: Upload Build Artifact
   #       uses: actions/upload-artifact@v4
