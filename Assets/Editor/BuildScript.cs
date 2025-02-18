@@ -8,13 +8,13 @@ using UnityEngine;
 public class BuildScript
 {
    [MenuItem("Tools/testBuild")]
-    public static void BuildMazeGeneratorWithWindowsProfile(string currentBuildVersion)
+    public static void BuildMazeGeneratorWithWindowsProfile(string version)
     {
         // string currentVersion = System.Environment.GetEnvironmentVariable("BUILD_VERSION");
         // string currentBuildVersion=File.ReadAllText("D:\\a\\Game2DLaby\\version.txt").Trim();
 
         // Mise à jour et sauvegarde de la version
-        PlayerSettings.bundleVersion = IncrementBuildVersion(currentBuildVersion);
+        PlayerSettings.bundleVersion = IncrementBuildVersion(version);
         PlayerSettings.productName="MazeGenerator";
         AssetDatabase.SaveAssets();
 
@@ -36,10 +36,10 @@ public class BuildScript
         if (summary.result == BuildResult.Succeeded)
         {
             Debug.Log($"✅ Build réussi : {summary.totalSize} bytes");
-            string version = PlayerSettings.bundleVersion;
+            string newversion = PlayerSettings.bundleVersion;
 
             // Sauvegarder la version
-            File.WriteAllText($"{buildFolder}/version.txt", version);
+            File.WriteAllText($"{buildFolder}/version.txt", newversion);
         }
         else
         {
