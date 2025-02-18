@@ -14,7 +14,7 @@ public class BuildScript
         // string currentBuildVersion=File.ReadAllText("D:\\a\\Game2DLaby\\version.txt").Trim();
 
         // Mise à jour et sauvegarde de la version
-        PlayerSettings.bundleVersion = IncrementBuildVersion(version);
+        PlayerSettings.bundleVersion = IncrementBuildVersion("1.0.0");
         PlayerSettings.productName="MazeGenerator";
         AssetDatabase.SaveAssets();
 
