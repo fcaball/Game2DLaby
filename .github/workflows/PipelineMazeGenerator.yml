@@ -52,8 +52,8 @@ jobs:
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
           targetPlatform: ${{ matrix.targetPlatform }}
-          buildMethod: BuildScript.BuildMazeGeneratorWithWindowsProfile
           customParameters: -version 1.0.0
+          buildMethod: BuildScript.BuildMazeGeneratorWithWindowsProfile
 
       - name: Upload Build Artifact
         uses: actions/upload-artifact@v4
