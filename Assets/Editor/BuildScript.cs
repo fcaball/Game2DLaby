@@ -11,11 +11,10 @@ public class BuildScript
     public static void BuildMazeGeneratorWithWindowsProfile(/* string version */)
     {
         // string currentVersion = System.Environment.GetEnvironmentVariable("BUILD_VERSION");
-        // string currentBuildVersion=File.ReadAllText("D:\\a\\Game2DLaby\\version.txt").Trim();
 
         // Mise à jour et sauvegarde de la version
         string version = "1.0.0"; // Valeur par défaut
-        version = System.Environment.GetEnvironmentVariable("version");
+        version=File.ReadAllText("D:\\a\\Game2DLaby\\version.txt");
 
 
         Debug.Log($"📌 Version reçue depuis GitHub Actions : {version}");

@@ -40,7 +40,15 @@ jobs:
           $response = Invoke-WebRequest -Uri "https://fabiencaballero.fr/MazeGenerator/version.php" -UseBasicParsing
           $version = ($response.Content | ConvertFrom-Json).version
           echo "Version récupérée: $version"
-          echo "BUILD_VERSION=$version" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8
+          
+          $versionFilePath = "D:\a\Game2DLaby\version.txt"
+          $directoryPath = [System.IO.Path]::GetDirectoryName($versionFilePath)
+          if (!(Test-Path $directoryPath)) {
+              New-Item -ItemType Directory -Path $directoryPath -Force
+          }
+
+          echo $version | Out-File -FilePath $versionFilePath -Encoding utf8
+          echo " $version save in file $versionFilePath"
 
 
       - name: Build with Unity
@@ -51,8 +59,9 @@ jobs:
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
-          customParameters: -version 1.0.4
+          targetPlatform: ${{ matrix.targetPlatform }}
           buildMethod: BuildScript.BuildMazeGeneratorWithWindowsProfile
+          customParameters: -currentBuildVersion VALEUR ICI
 
       - name: Upload Build Artifact
         uses: actions/upload-artifact@v4
@@ -61,6 +70,7 @@ jobs:
           path: MazeBuilds/Windows
 
       - name: Upload Unity logs on failure
+        if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: Unity-Logs
