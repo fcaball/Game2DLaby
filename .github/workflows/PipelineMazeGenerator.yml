@@ -37,6 +37,8 @@ jobs:
       - name: Get current version from server
         shell: powershell
         run: |
+          [System.Net.ServicePointManager]::ServerCertificateValidationCallback = { $true }
+          
           $response = Invoke-WebRequest -Uri "https://fabiencaballero.fr/MazeGenerator/version.php" -UseBasicParsing
           $version = ($response.Content | ConvertFrom-Json).version
           echo "Version récupérée: $version"
