@@ -8,7 +8,7 @@ using UnityEngine;
 public class BuildScript
 {
    [MenuItem("Tools/testBuild")]
-    public static void BuildMazeGeneratorWithWindowsProfile(string version)
+    public static void BuildMazeGeneratorWithWindowsProfile(/* string version */)
     {
         // string currentVersion = System.Environment.GetEnvironmentVariable("BUILD_VERSION");
         // string currentBuildVersion=File.ReadAllText("D:\\a\\Game2DLaby\\version.txt").Trim();
