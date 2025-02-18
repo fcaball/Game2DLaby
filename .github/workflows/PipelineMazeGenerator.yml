@@ -40,134 +40,123 @@ jobs:
           $response = Invoke-WebRequest -Uri "https://fabiencaballero.fr/MazeGenerator/version.php" -UseBasicParsing
           $version = ($response.Content | ConvertFrom-Json).version
           echo "Version récupérée: $version"
-          echo "VERSION=$version" >> $env:GITHUB_ENV
+          echo "VERSION=$($response.Content)" >> $env:GITHUB_ENV
 
 
-      - name: Unity Build
-        shell: powershell
+
+      - name: Build with Unity
+        uses: game-ci/unity-builder@v4
+        timeout-minutes: 50
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          targetPlatform: ${{ matrix.targetPlatform }}
+          buildMethod: BuildScript.BuildMazeGeneratorWithWindowsProfile
+          customParameters: -version ${{env.VERSION}}
+
+      - name: Upload Build Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Build-${{ matrix.targetPlatform }}
+          path: MazeBuilds/Windows
+
+      - name: Upload Unity logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Unity-Logs
+          path: Library/Logs/Unity
+
+  deployOnPersonalServer:
+    name: Deploy on Personal server
+    runs-on: windows-latest
+    needs: buildForAllSupportedPlatforms
+    steps:
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: Build-StandaloneWindows
+          path: MazeBuilds/Windows
+
+      - name: Get Artifact ID (Retry)
         run: |
-          Start-Process -NoNewWindow -Wait -FilePath "D:\Program Files\Unity\Hub\Editor\6000.0.32f1\Editor\Unity.exe" -ArgumentList `
-            "-batchmode", `
-            "-nographics", `
-            "-projectPath `"$env:GITHUB_WORKSPACE`"", `
-            "-executeMethod BuildScript.BuildMazeGeneratorWithWindowsProfile", `
-            "--", "1.0.12", `
-            "-quit", `
-            "-logFile unity_log.txt"
-
-      # - name: Build with Unity
-      #   uses: game-ci/unity-builder@v4
-      #   timeout-minutes: 50
-      #   env:
-      #     UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
-      #     UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
-      #     UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
-      #   with:
-      #     targetPlatform: ${{ matrix.targetPlatform }}
-      #     buildMethod: BuildScript.BuildMazeGeneratorWithWindowsProfile
-      #     customParameters: -version ${{env.VERSION}}
-
-  #     - name: Upload Build Artifact
-  #       uses: actions/upload-artifact@v4
-  #       with:
-  #         name: Build-${{ matrix.targetPlatform }}
-  #         path: MazeBuilds/Windows
-
-  #     - name: Upload Unity logs on failure
-  #       if: failure()
-  #       uses: actions/upload-artifact@v4
-  #       with:
-  #         name: Unity-Logs
-  #         path: Library/Logs/Unity
-
-  # deployOnPersonalServer:
-  #   name: Deploy on Personal server
-  #   runs-on: windows-latest
-  #   needs: buildForAllSupportedPlatforms
-  #   steps:
-  #     - name: Download build artifact
-  #       uses: actions/download-artifact@v4
-  #       with:
-  #         name: Build-StandaloneWindows
-  #         path: MazeBuilds/Windows
-
-  #     - name: Get Artifact ID (Retry)
-  #       run: |
-  #         $API_URL="https://api.github.com/repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts"
+          $API_URL="https://api.github.com/repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts"
           
-  #         Write-Host "Fetching artifact ID from $API_URL"
+          Write-Host "Fetching artifact ID from $API_URL"
 
-  #         for ($i=1; $i -le 10; $i++) {
-  #           try {
-  #             $RESPONSE = Invoke-RestMethod -Uri $API_URL -Headers @{ Authorization = "token ${{ secrets.GITHUB_TOKEN }}" }
-  #             $ARTIFACT_ID = $RESPONSE.artifacts | Where-Object { $_.name -eq "Build-StandaloneWindows" } | Select-Object -ExpandProperty id
+          for ($i=1; $i -le 10; $i++) {
+            try {
+              $RESPONSE = Invoke-RestMethod -Uri $API_URL -Headers @{ Authorization = "token ${{ secrets.GITHUB_TOKEN }}" }
+              $ARTIFACT_ID = $RESPONSE.artifacts | Where-Object { $_.name -eq "Build-StandaloneWindows" } | Select-Object -ExpandProperty id
 
-  #             if ($ARTIFACT_ID) {
-  #               Write-Host "✅ Artifact ID trouvé : $ARTIFACT_ID"
-  #               echo "ARTIFACT_ID=$ARTIFACT_ID" >> $env:GITHUB_ENV
-  #               exit 0
-  #             }
-  #           } catch {
-  #             Write-Host "⚠️ Erreur lors de la récupération de l'ID de l'artefact"
-  #           }
+              if ($ARTIFACT_ID) {
+                Write-Host "✅ Artifact ID trouvé : $ARTIFACT_ID"
+                echo "ARTIFACT_ID=$ARTIFACT_ID" >> $env:GITHUB_ENV
+                exit 0
+              }
+            } catch {
+              Write-Host "⚠️ Erreur lors de la récupération de l'ID de l'artefact"
+            }
 
-  #           Write-Host "⏳ Artifact introuvable... nouvelle tentative dans 10 secondes ($i/10)"
-  #           Start-Sleep -Seconds 10
-  #         }
+            Write-Host "⏳ Artifact introuvable... nouvelle tentative dans 10 secondes ($i/10)"
+            Start-Sleep -Seconds 10
+          }
 
-  #         Write-Host "❌ Impossible de récupérer l'ID de l'artifact après 10 essais."
-  #         exit 1
-  #       shell: pwsh
+          Write-Host "❌ Impossible de récupérer l'ID de l'artifact après 10 essais."
+          exit 1
+        shell: pwsh
 
-  #     - name: Get Version and Update Server
-  #       run: |
-  #        if (!(Test-Path -Path "MazeBuilds/Windows/version.txt")) {
-  #             Write-Host "❌ ERREUR: Le fichier MazeBuilds/Windows/version.txt est introuvable !"
-  #             exit 1
-  #         }
+      - name: Get Version and Update Server
+        run: |
+         if (!(Test-Path -Path "MazeBuilds/Windows/version.txt")) {
+              Write-Host "❌ ERREUR: Le fichier MazeBuilds/Windows/version.txt est introuvable !"
+              exit 1
+          }
 
-  #         # Lire la version depuis le fichier
-  #         $VERSION = Get-Content MazeBuilds/Windows/version.txt -Raw
-  #         $VERSION = $VERSION.Trim()  # Nettoyage des espaces et sauts de ligne
+          # Lire la version depuis le fichier
+          $VERSION = Get-Content MazeBuilds/Windows/version.txt -Raw
+          $VERSION = $VERSION.Trim()  # Nettoyage des espaces et sauts de ligne
 
-  #         $API_URL = "https://fabiencaballero.fr/MazeGenerator/version.php"
+          $API_URL = "https://fabiencaballero.fr/MazeGenerator/version.php"
 
-  #         # Afficher les valeurs pour debug
-  #         Write-Host "📌 Version détectée : '$VERSION'"
+          # Afficher les valeurs pour debug
+          Write-Host "📌 Version détectée : '$VERSION'"
 
-  #         # Construire l'URL finale
-  #         $FULL_URL = "$API_URL"+"?version=$VERSION"
+          # Construire l'URL finale
+          $FULL_URL = "$API_URL"+"?version=$VERSION"
 
-  #         Write-Host "🌍 URL Finale : $FULL_URL"
+          Write-Host "🌍 URL Finale : $FULL_URL"
 
-  #         # Envoyer la requête
-  #         try {
-  #             Invoke-WebRequest -Uri $FULL_URL -Method Get
-  #             Write-Host "✅ Mise à jour envoyée avec succès !"
-  #         } catch {
-  #             Write-Host "❌ ERREUR: Impossible d'envoyer la requête à l'API"
-  #             Write-Host "📌 Détail de l'erreur : $_"
-  #             exit 1
-  #         }
+          # Envoyer la requête
+          try {
+              Invoke-WebRequest -Uri $FULL_URL -Method Get
+              Write-Host "✅ Mise à jour envoyée avec succès !"
+          } catch {
+              Write-Host "❌ ERREUR: Impossible d'envoyer la requête à l'API"
+              Write-Host "📌 Détail de l'erreur : $_"
+              exit 1
+          }
         
-  #     - name: Upload Artifact To Server
-  #       run: |
-  #         Compress-Archive -Path "MazeBuilds/Windows/*" -DestinationPath "MazeBuilds/Windows/MazeBuild.zip"
-  #         $ftpUrl = "ftp://fabiencaballero.fr/"
-  #         $ftpUsername = "${{secrets.FTP_USERNAME}}"
-  #         $ftpPassword = "${{secrets.FTP_PASSWORD}}"
-  #         $filePath = "MazeBuilds/Windows/MazeBuild.zip"
+      - name: Upload Artifact To Server
+        run: |
+          Compress-Archive -Path "MazeBuilds/Windows/*" -DestinationPath "MazeBuilds/Windows/MazeBuild.zip"
+          $ftpUrl = "ftp://fabiencaballero.fr/"
+          $ftpUsername = "${{secrets.FTP_USERNAME}}"
+          $ftpPassword = "${{secrets.FTP_PASSWORD}}"
+          $filePath = "MazeBuilds/Windows/MazeBuild.zip"
 
-  #         # Créer un objet WebClient
-  #         $webClient = New-Object System.Net.WebClient
+          # Créer un objet WebClient
+          $webClient = New-Object System.Net.WebClient
 
-  #         # Ajouter les informations d'identification
-  #         $webClient.Credentials = New-Object System.Net.NetworkCredential($ftpUsername, $ftpPassword)
+          # Ajouter les informations d'identification
+          $webClient.Credentials = New-Object System.Net.NetworkCredential($ftpUsername, $ftpPassword)
 
-  #         # Télécharger le fichier via FTP
-  #         $webClient.UploadFile($ftpUrl + (Split-Path $filePath -Leaf), "STOR", $filePath)
+          # Télécharger le fichier via FTP
+          $webClient.UploadFile($ftpUrl + (Split-Path $filePath -Leaf), "STOR", $filePath)
 
-  #         Write-Host "Fichier uploadé avec succès"
+          Write-Host "Fichier uploadé avec succès"
           
 
-  #       shell: pwsh
+        shell: pwsh
