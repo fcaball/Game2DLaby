@@ -38,7 +38,7 @@ jobs:
         shell: powershell
         run: |
           $response = Invoke-WebRequest -Uri "https://fabiencaballero.fr/MazeGenerator/version.php" -UseBasicParsing
-          $version = ($response.Content | ConvertFrom-Json).version
+          $version = ($response.Content | ConvertFrom-Json).Version
           echo "Version récupérée: $version"
           echo "VERSION=$version" >> $env:GITHUB_ENV
 
