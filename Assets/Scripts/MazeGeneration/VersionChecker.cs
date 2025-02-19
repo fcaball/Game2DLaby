@@ -46,10 +46,16 @@ public class VersionChecker : MonoBehaviour
         }
         else
         {
-            string versionNumber = request.downloadHandler.text;
+            string versionNumber =  JsonUtility.FromJson<VersionWrapper>(request.downloadHandler.text).Version;
             Debug.Log("Current Version Number from Server: " + versionNumber);
             CheckVersion(versionNumber);
         }
+    }
+    // Classe interne pour éviter une classe externe
+    [System.Serializable]
+    private class VersionWrapper
+    {
+        public string Version;
     }
 
     void CheckVersion(string versionNumber)
