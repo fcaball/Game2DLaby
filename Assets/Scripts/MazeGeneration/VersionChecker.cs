@@ -54,7 +54,7 @@ public class VersionChecker : MonoBehaviour
 
     void CheckVersion(string versionNumber)
     {
-        if (versionNumber == _currentVersion)
+        if (versionNumber.Equals(_currentVersion))
         {
             Debug.Log("The version is up to date.");
         }
