@@ -15,6 +15,7 @@ public class PointerClickGrid : MonoBehaviour, IPointerClickHandler/* , IPointer
     [SerializeField] private Tilemap _tilemapUI2; // Référence à la Tilemap
     [SerializeField] private TileMapVisualizer _tileMapVisualizer;
     [SerializeField] private SimpleMapGenerator _simpleMapGenerator;
+    [SerializeField] private CameraControl _cameraControl;
     [SerializeField] private Button _startPosition;
 
     [SerializeField] private TileBase _selectTileBase;
@@ -32,6 +33,7 @@ public class PointerClickGrid : MonoBehaviour, IPointerClickHandler/* , IPointer
         _tilemap.GetComponent<TilemapRenderer>().sortingOrder = 0;
         _tilemapUI.GetComponent<TilemapRenderer>().sortingOrder = 1;
         _tilemapUI2.GetComponent<TilemapRenderer>().sortingOrder = 2;
+        _cameraControl = Camera.main.gameObject.GetComponent<CameraControl>();
     }
 
 
@@ -74,7 +76,7 @@ public class PointerClickGrid : MonoBehaviour, IPointerClickHandler/* , IPointer
 
     private void Update()
     {
-        if (!_imageBlocker.raycastTarget)
+        if (!_imageBlocker.raycastTarget && !_cameraControl.IsDragging)
         { // //  Convertir la position du clic de la souris en coordonnées du monde
             Vector3 worldPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
             worldPosition.z = _tilemap.transform.position.z; // Ajuster la profondeur Z
@@ -100,6 +102,12 @@ public class PointerClickGrid : MonoBehaviour, IPointerClickHandler/* , IPointer
                 DeleteTiles();
             }
         }
+        if (_cameraControl.IsDragging)
+        {
+            _tilemapUI.SetTile(_previousHoveredTile, null);
+
+        }
+
     }
 
     public void DeleteTiles()
