@@ -104,6 +104,8 @@ public class PointerClickGrid : MonoBehaviour, IPointerClickHandler/* , IPointer
             {
                 DeleteTiles();
             }
+
+            
         }
         if (_cameraControl.IsDragging)
         {
