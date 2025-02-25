@@ -151,6 +151,12 @@ public class SimpleMapGenerator : MonoBehaviour
         _mapTiles.UnionWith(positions);
     }
 
+    public void ClearRooms(){
+        _potentialsRooms.Clear();
+        _refreshNumberOfPotentialRooms.Invoke(_potentialsRooms.Count + " pièce(s) potentielle(s)");
+
+    }
+
 
 
     #endregion
