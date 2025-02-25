@@ -19,6 +19,7 @@ public class FloorsEditorManager : MonoBehaviour
     private TMP_Dropdown _dropdown;
     private int _currentFloor = 0;
     private int _previousFloor = 0;
+
     private void Start()
     {
         _dropdown = GetComponent<TMP_Dropdown>();
@@ -31,6 +32,15 @@ public class FloorsEditorManager : MonoBehaviour
         _dropdown.RefreshShownValue(); // Mettre à jour l'affichage du dropdown
 
     }
+
+  private void Update() {
+    // Vérifie si Command (ou Control) est enfoncé avec la touche S
+    if ((Input.GetKeyDown(KeyCode.LeftCommand) || Input.GetKeyDown(KeyCode.RightCommand) || Input.GetKeyDown(KeyCode.LeftControl) || Input.GetKeyDown(KeyCode.RightControl)) && Input.GetKeyDown(KeyCode.S)) {
+        Debug.Log("saved");
+        SaveFloor();
+    }
+}
+
 
     public void SetCurrentFloorSelected(int current)
     {
@@ -91,8 +101,8 @@ public class FloorsEditorManager : MonoBehaviour
 
     public void SetSaveButtonInteractability(bool value)
     {
-        if (value != _saveButton.interactable)
-            _saveButton.interactable = value;
+        _saveButton.interactable = value;
+        Debug.Log(value);
     }
 
     public void AddFloor()

@@ -23,7 +23,7 @@ public class CameraControl : MonoBehaviour
         {
             transform.position += Vector3.up * Time.deltaTime * 2 * _multiplicateurCameraSpeed;
         }
-        if (Input.GetKey(KeyCode.S))
+        if (Input.GetKey(KeyCode.S) && !Input.GetKey(KeyCode.LeftControl) && !Input.GetKey(KeyCode.RightCommand))
         {
             transform.position -= Vector3.up * Time.deltaTime * 2 * _multiplicateurCameraSpeed;
         }
