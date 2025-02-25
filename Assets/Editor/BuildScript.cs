@@ -38,6 +38,7 @@ public class BuildScript
             Directory.CreateDirectory(buildFolder);
         }
 
+        PlayerSettings.fullScreenMode = FullScreenMode.MaximizedWindow; // Définir sur fenêtre maximisée
 
         string[] scenes = new string[] { "Assets/Scenes/MazeGenerator.unity" };
 
