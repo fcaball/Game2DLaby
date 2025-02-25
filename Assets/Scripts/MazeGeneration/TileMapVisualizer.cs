@@ -93,4 +93,14 @@ public class TileMapVisualizer : MonoBehaviour
         // PaintSingleTile(Map, codeTiles[tileType], tilePos);
         _simpleMapGenerator.SetTileType(tilePos, tileType);
     }
+
+    public bool SetInOut(Vector3Int tilePos)
+    {
+       if(_map.GetTile(tilePos)==_codeTiles[(int)TileType.Floor]){
+
+        return true;
+       }else{
+        return false;
+       }
+    }
 }
