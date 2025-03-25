@@ -7,6 +7,7 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
 using Random = UnityEngine.Random;
+using System.Linq;
 
 public class SimpleMapGenerator : MonoBehaviour
 {
@@ -18,7 +19,6 @@ public class SimpleMapGenerator : MonoBehaviour
     private bool _isRoomGenerationIsON = false;
     private bool _isEachIterationStartFromRandomlyPosition = true;
     [SerializeField] private TileMapVisualizer _tileMapVisualizer;
-    private HashSet<Vector3Int> _mapTiles = new();
     [SerializeField] private UnityEvent _missingParameter;
     [SerializeField] private GameObject _runButton;
     [SerializeField] private Image _loadingPicture;
@@ -105,23 +105,20 @@ public class SimpleMapGenerator : MonoBehaviour
         for (int i = 0; i < _iterations; i++)
         {
             Debug.Log("Iter");
-            var path = ProceduralGenerationAlgorithms.SimpleRandomWalk(currentPosition, _walkLength, _mapTiles.ToList());
+            var path = ProceduralGenerationAlgorithms.SimpleRandomWalk(currentPosition, _walkLength, MazeData.MazeFloors[MazeData.CurrentFloor].TileInfos);
 
             positions.UnionWith(path);
             if (_isEachIterationStartFromRandomlyPosition)
             {
                 int index = Random.Range(0, positions.Count);
-                while (positions.ElementAt(index).z == (int)TileType.StraightVerticalWall)
-                {
-                    index = Random.Range(0, positions.Count);
-                }
                 currentPosition = new Vector3Int(positions.ElementAt(index).x, positions.ElementAt(index).y, 0);
             }
             if (isLoadingHaveToBeUpdated)
                 _loadingPicture.fillAmount = (float)i / _iterations;
             yield return null;
         }
-        _mapTiles.UnionWith(positions);
+        MazeData.MazeFloors[MazeData.CurrentFloor].AddOrReplaceTiles(positions);
+        // _mapTiles.UnionWith(positions);
     }
     #endregion
 
@@ -134,7 +131,7 @@ public class SimpleMapGenerator : MonoBehaviour
         HashSet<Vector3Int> positions = new();
         for (int i = 0; i < _iterations; i++)
         {
-            var path = ProceduralGenerationAlgorithms.SimpleCorridorRandomWalk(currentPosition, _walkLength, _mapTiles.ToList());
+            var path = ProceduralGenerationAlgorithms.SimpleCorridorRandomWalk(currentPosition, _walkLength, MazeData.MazeFloors[MazeData.CurrentFloor].TileInfos);
 
             currentPosition = path.Last();
             positions.UnionWith(path);
@@ -148,10 +145,12 @@ public class SimpleMapGenerator : MonoBehaviour
             yield return null;
         }
 
-        _mapTiles.UnionWith(positions);
+        MazeData.MazeFloors[MazeData.CurrentFloor].AddOrReplaceTiles(positions);
+
     }
 
-    public void ClearRooms(){
+    public void ClearRooms()
+    {
         _potentialsRooms.Clear();
         _refreshNumberOfPotentialRooms.Invoke(_potentialsRooms.Count + " pièce(s) potentielle(s)");
 
@@ -165,37 +164,38 @@ public class SimpleMapGenerator : MonoBehaviour
     IEnumerator RunWallGeneration()
     {
         HashSet<Vector3Int> walls = new();
+        var floorDatas = MazeData.MazeFloors[MazeData.CurrentFloor];
 
-        for (int i = 0; i < _mapTiles.Count; i++)
+        for (int i = 0; i < floorDatas.TileInfos.Count; i++)
         {
-            var currentTile = _mapTiles.ElementAt(i);
-            if (currentTile.z == (int)TileType.Floor)
+            var currentTile = floorDatas.TileInfos[i];
+            if (currentTile.Tag == (int)TileTag.Floor)
             {
                 Vector3Int[] adjacentPositions = new Vector3Int[]
                 {
-                    new(currentTile.x, currentTile.y + 1),//arrete commune
-                    new (currentTile.x + 1, currentTile.y),//arrete commune
-                    new (currentTile.x - 1, currentTile.y),//arrete commune
-                    new (currentTile.x, currentTile.y - 1),//arrete commune
+                    new(currentTile.Position.x, currentTile.Position.y + 1),//arrete commune
+                    new (currentTile.Position.x + 1, currentTile.Position.y),//arrete commune
+                    new (currentTile.Position.x - 1, currentTile.Position.y),//arrete commune
+                    new (currentTile.Position.x, currentTile.Position.y - 1),//arrete commune
                
-                    new (currentTile.x+1, currentTile.y - 1),//vertice commune
-                    new (currentTile.x-1, currentTile.y - 1),//vertice commune
-                    new (currentTile.x+1, currentTile.y + 1),//vertice commune
-                    new (currentTile.x-1, currentTile.y + 1)//vertice commune
+                    new (currentTile.Position.x+1, currentTile.Position.y - 1),//vertice commune
+                    new (currentTile.Position.x-1, currentTile.Position.y - 1),//vertice commune
+                    new (currentTile.Position.x+1, currentTile.Position.y + 1),//vertice commune
+                    new (currentTile.Position.x-1, currentTile.Position.y + 1)//vertice commune
                };
 
 
                 foreach (var pos in adjacentPositions)
                 {
-                    if (!_mapTiles.Contains(pos) && !walls.Contains(pos))
+                    if (!floorDatas.ContainsTile(pos) && !walls.Contains(pos))
                     {
-                        walls.Add(new Vector3Int { x = pos.x, y = pos.y, z = -1 });
+                        walls.Add(new Vector3Int { x = pos.x, y = pos.y, z = 0 });
                     }
                 }
 
 
             }
-            _loadingPicture.fillAmount = (float)i / _mapTiles.Count;
+            _loadingPicture.fillAmount = (float)i / floorDatas.TileInfos.Count;
 
             yield return null;
         }
@@ -205,7 +205,7 @@ public class SimpleMapGenerator : MonoBehaviour
 
     public HashSet<Vector3Int> UpdateWallsAfterAlgo(HashSet<Vector3Int> walls)
     {
-
+        List<TileDatas> tileDatas = new();
         HashSet<Vector2Int> wallPositions2Int = new(walls.Select(w => new Vector2Int(w.x, w.y)));
         for (int i = 0; i < walls.Count; i++)
         {
@@ -213,17 +213,17 @@ public class SimpleMapGenerator : MonoBehaviour
 
             var neibourghPresence = HasNeibourghIn(pos, wallPositions2Int);
 
-            int TileType = (int)GetNewTileTypeWithNeibourghs(neibourghPresence);
-            if (pos.z != TileType)
+            TileTag TileType = GetNewTileTypeWithNeibourghs(neibourghPresence);
+            tileDatas.Add(new()
             {
-
-                walls.Remove(pos);
-                pos.z = TileType;
-                walls.Add(new Vector3Int { x = pos.x, y = pos.y, z = pos.z });
-            }
+                Position = pos,
+                Tag = TileType,
+                Rotation = TileDatas.GetTileRotation(TileType)
+            });
         }
 
-        _mapTiles.UnionWith(walls);
+        MazeData.MazeFloors[MazeData.CurrentFloor].AddOrReplaceTiles(tileDatas);
+
         _tileMapVisualizer.PaintTiles();
         return walls;
     }
@@ -246,7 +246,7 @@ public class SimpleMapGenerator : MonoBehaviour
             positionsList.Contains(adjacentPositions[3])};
     }
 
-    public TileType GetNewTileTypeWithNeibourghs(List<bool> neibourghPresence)
+    public TileTag GetNewTileTypeWithNeibourghs(List<bool> neibourghPresence)
     {
         bool hasTop = neibourghPresence[0];
         bool hasLeft = neibourghPresence[1];
@@ -254,55 +254,56 @@ public class SimpleMapGenerator : MonoBehaviour
         bool hasBottom = neibourghPresence[3];
         if (hasTop && hasRight && hasLeft && hasBottom)
         {
-            return TileType.ConnexionAllDirectionsWall;
+            return TileTag.ConnexionAllDirectionsWall;
         }
         else if (hasTop && hasRight && hasLeft)
         {
-            return TileType.ConnexionLeftTopRightWall;
+            return TileTag.ConnexionLeftTopRightWall;
         }
         else if (hasRight && hasBottom && hasLeft)
         {
-            return TileType.ConnexionRightDownLeftWall;
+            return TileTag.ConnexionRightDownLeftWall;
         }
         else if (hasTop && hasLeft && hasBottom)
         {
-            return TileType.ConnexionTopLeftDownWall;
+            return TileTag.ConnexionTopLeftDownWall;
         }
         else if (hasTop && hasRight && hasBottom)
         {
-            return TileType.ConnexionTopRightDownWall;
+            return TileTag.ConnexionTopRightDownWall;
         }
         else if (hasTop && hasRight)
         {
-            return TileType.CornerDownLeftWall;
+            return TileTag.CornerDownLeftWall;
         }
         else if (hasTop && hasLeft)
         {
-            return TileType.CornerDownRightWall;
+            return TileTag.CornerDownRightWall;
         }
         else if (hasBottom && hasLeft)
         {
-            return TileType.CornerTopRightWall;
+            return TileTag.CornerTopRightWall;
         }
         else if (hasBottom && hasRight)
         {
-            return TileType.CornerTopLeftWall;
+            return TileTag.CornerTopLeftWall;
         }
         else if (hasTop && hasBottom)
         {
-            return TileType.StraightVerticalWall;
+            return TileTag.StraightVerticalWall;
         }
         else if (hasLeft && hasRight)
         {
-            return TileType.StraightHorizontalWall;
+            return TileTag.StraightHorizontalWall;
         }
-        return TileType.Floor;
+        Debug.Log("floor choosed");
+        return TileTag.Floor;
     }
 
 
     private void ClearWalls()
     {
-        _mapTiles.RemoveWhere((t) => t.z != (int)TileType.Floor);
+        MazeData.MazeFloors[MazeData.CurrentFloor].TileInfos.RemoveAll((t) => t.Tag != (int)TileTag.Floor);
     }
     #endregion
 
@@ -336,50 +337,48 @@ public class SimpleMapGenerator : MonoBehaviour
         return startPosition;
     }
 
-    public HashSet<Vector3Int> GetMapTiles()
-    {
-        return _mapTiles;
-    }
-
-    public HashSet<Vector3Int> SetMapTiles(List<Vector3Int> tileMap)
-    {
-        _mapTiles.Clear();
-        for (int i = 0; i < tileMap.Count; i++)
-        {
-            _mapTiles.Add(new Vector3Int
-            {
-                x = tileMap[i].x,
-                y = tileMap[i].y,
-                z = tileMap[i].z,
-            });
-        }
-        return _mapTiles;
-    }
 
     public void DeleteTile(Vector3Int tilePos)
     {
-        for (int i = 0; i < _mapTiles.Count; i++)
-        {
-            if (_mapTiles.ElementAt(i).x == tilePos.x && _mapTiles.ElementAt(i).y == tilePos.y)
-            {
-                _mapTiles.Remove(_mapTiles.ElementAt(i));
-            }
-        }
+        MazeData.MazeFloors[MazeData.CurrentFloor].TileInfos.RemoveAll((t) => t.Position == tilePos);
+        MazeData.MazeFloors[MazeData.CurrentFloor].EntreeSorties.RemoveAll((io) => io.Location == tilePos);
+        MazeData.MazeFloors[MazeData.CurrentFloor].Minerals.Remove(tilePos);
     }
 
     public void SetTileType(Vector3Int tilePos, int tiletype)
     {
+        var _mapTiles = MazeData.MazeFloors[MazeData.CurrentFloor].TileInfos;
+        TileDatas tileDatas = _mapTiles
+    .FirstOrDefault(tD => tD.Position.x == tilePos.x && tD.Position.y == tilePos.y);
 
-        for (int i = 0; i < _mapTiles.Count; i++)
+        if (tileDatas == null)
         {
-            var tile = _mapTiles.ElementAt(i);
-            if (tile.x == tilePos.x && tile.y == tilePos.y)
+            _mapTiles.Add(new TileDatas()  // Ajoute un nouvel objet correctement instancié
             {
-                tile.z = tiletype;
-                _mapTiles.Add(tile);
-                break;
-            }
+                Position = tilePos,
+                Tag = (TileTag)tiletype,
+                Rotation = TileDatas.GetTileRotation((TileTag)tiletype)
+            });
         }
+        else
+        {
+            tileDatas.Tag = (TileTag)tiletype;
+            tileDatas.Rotation = TileDatas.GetTileRotation((TileTag)tiletype);
+        }
+
+
+        // for (int i = 0; i < _mapTiles.Count; i++)
+        // {
+        //     var tile = _mapTiles.ElementAt(i);
+        //     if (tile.Position.x == tilePos.x && tile.Position.y == tilePos.y)
+        //     {
+        //         _mapTiles.Remove(_mapTiles.ElementAt(i));
+        //         tile.Tag = (TileTag)tiletype;
+        //         tile.Rotation = TileDatas.GetTileRotation((TileTag)tiletype);
+        //         _mapTiles.Add(tile);
+        //         break;
+        //     }
+        // }
         _tileMapVisualizer.PaintTiles();
     }
 
@@ -393,7 +392,17 @@ public class SimpleMapGenerator : MonoBehaviour
         _isRoomCreationIsPossible = value;
     }
 
+
+    #endregion
+
+
+    public void AddInOut(Vector3Int pos, int floorDestination, Vector3Int positionDestinationSpawn)
+    {
+        MazeData.MazeFloors[MazeData.CurrentFloor].EntreeSorties.Add(new InOut(pos, floorDestination, positionDestinationSpawn));
+    }
+
+    public void RemoveInOut(Vector3Int pos)
+    {
+        MazeData.MazeFloors[MazeData.CurrentFloor].EntreeSorties.RemoveAll((io) => io.Location == pos);
+    }
 }
-#endregion
-
-

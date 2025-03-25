@@ -2,11 +2,13 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.IO;
 using UnityEngine.Tilemaps;
+using System.Linq;
 
 public class MazeData : MonoBehaviour
 {
     // Liste statique qui va contenir les différentes données de chaque étage du labyrinthe
     public static List<FloorData> MazeFloors = new();
+    public static int CurrentFloor;
     [SerializeField] private string _fileNameWithExtension;
 
     public void Awake()
@@ -33,33 +35,36 @@ public class MazeData : MonoBehaviour
                         new() {
                             Name = "Default",
                             EntreeSorties = new List<InOut>(),
-                            TileMap = new List<Vector3Int>(){
-                                new(){
-                                    x=0,
-                                    y=0,
-                                    z=(int) TileType.Floor
+
+                            TileInfos=new List<TileDatas>(){
+                                 new(){
+                                    Position=new(0,0,0),
+                                    Rotation=new(0,0,0),
+                                    Tag=0
                                 }
                             }
                         }
 
             };
 
-            MazeFloors=MazeFloors.Count==0?  new()
+            MazeFloors = MazeFloors.Count == 0 ? new()
             {
 
                         new() {
                             Name = "Default",
                             EntreeSorties = new List<InOut>(),
-                            TileMap = new List<Vector3Int>(){
-                                new(){
-                                    x=0,
-                                    y=0,
-                                    z=(int) TileType.Floor
+
+                            TileInfos=new List<TileDatas>(){
+                                 new(){
+                                    Position=new(0,0,0),
+                                    Rotation=new(0,0,0),
+                                    Tag=0
                                 }
+
                             }
                         }
 
-            }:MazeFloors;
+            } : MazeFloors;
         }
         else
         {
@@ -73,11 +78,12 @@ public class MazeData : MonoBehaviour
                         new() {
                             Name = "Default",
                             EntreeSorties = new List<InOut>(),
-                            TileMap = new List<Vector3Int>(){
+
+                            TileInfos=new List<TileDatas>(){
                                 new(){
-                                    x=0,
-                                    y=0,
-                                    z=(int) TileType.Floor
+                                    Position=new(0,0,0),
+                                    Rotation=new(0,0,0),
+                                    Tag=0
                                 }
                             }
                         }
@@ -95,10 +101,10 @@ public class MazeData : MonoBehaviour
         }
 
     }
-    private void OnApplicationQuit()
-    {
-        SaveData();
-    }
+    // private void OnApplicationQuit()
+    // {
+    //     SaveData();
+    // }
 
     // Fonction pour sauvegarder les données dans un fichier JSON
     public void SaveData()
@@ -123,9 +129,45 @@ public class MazeData : MonoBehaviour
 [System.Serializable]
 public class FloorData
 {
-    public List<Vector3Int> TileMap = new();
+    public List<TileDatas> TileInfos = new();
+    public List<Vector3Int> Minerals=new();
     public string Name;
     public List<InOut> EntreeSorties = new();
+
+    public bool ContainsTile(Vector3Int position)
+    {
+        return TileInfos.Any(tile => tile.Position == position);
+    }
+
+    public void AddOrReplaceTiles(List<TileDatas> tilesDatas)
+    {
+        Dictionary<Vector3Int, TileDatas> tileMap = TileInfos.ToDictionary(tile => tile.Position);
+
+        foreach (var tileData in tilesDatas)
+        {
+            tileMap[tileData.Position] = tileData;
+        }
+
+        TileInfos = tileMap.Values.ToList();
+    }
+      public void AddOrReplaceTiles(HashSet<Vector3Int> newPositions)
+    {
+        Dictionary<Vector3Int, TileDatas> tileMap = TileInfos.ToDictionary(tile => tile.Position);
+
+        foreach (var position in newPositions)
+        {
+            tileMap[position] = new TileDatas
+            {
+                Position = position,
+                Rotation = new Vector3Int(0, 0, 0),
+                Tag = 0
+            };
+        }
+
+        TileInfos = tileMap.Values.ToList();
+    }
+
+
 
 }
 
@@ -133,11 +175,53 @@ public class FloorData
 [System.Serializable]
 public class InOut
 {
-    public List<TileData> Locations = new();
+    public Vector3Int Location;
     public int IndexFloorDestination;
+    public Vector3Int SpawnInDestination;
+
+    public InOut(Vector3Int pos, int v,Vector3Int spawnDest)
+    {
+        Location = pos;
+        IndexFloorDestination = v;
+        SpawnInDestination = spawnDest;
+    }
 }
 
-public enum TileType
+[System.Serializable]
+public class TileDatas
+{
+    public TileTag Tag;
+    public Vector3Int Position;
+    public Vector3Int Rotation;
+    
+    public static Vector3Int GetTileRotation(TileTag tag)
+    {
+
+        switch (tag)
+        {
+            case TileTag.StraightVerticalWall:
+                return new Vector3Int(0, 0, 90);
+            case TileTag.CornerTopRightWall:
+                return new Vector3Int(0, 0, -90);
+            case TileTag.CornerDownRightWall:
+                return new Vector3Int(0, 0, 180);
+            case TileTag.CornerDownLeftWall:
+                return new Vector3Int(0, 0, 90);
+            case TileTag.ConnexionLeftTopRightWall:
+                return new Vector3Int(0, 0, -90);
+            case TileTag.ConnexionRightDownLeftWall:
+                return new Vector3Int(0, 0, 90);
+            case TileTag.ConnexionTopRightDownWall:
+                return new Vector3Int(0, 0, 180);
+
+            default: return new Vector3Int(0, 0, 0);
+        }
+
+    }
+
+}
+
+public enum TileTag
 {
     Floor = 0,
     StraightVerticalWall = 1,

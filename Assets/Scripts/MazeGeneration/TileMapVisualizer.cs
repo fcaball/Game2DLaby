@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.Tilemaps;
@@ -8,7 +9,11 @@ public class TileMapVisualizer : MonoBehaviour
 {
 
     [SerializeField] private Tilemap _map;
+    [SerializeField] private Tilemap _tilemapInOutAndMinerals;
     [SerializeField] private List<TileBase> _codeTiles;
+    [SerializeField] private TileBase _inOutTileBase;
+    [SerializeField] private TileBase _destinationTileBase;
+    [SerializeField] private TileBase _mineralTileBase;
     [SerializeField] private SimpleMapGenerator _simpleMapGenerator;
     [SerializeField] private FloorsEditorManager _floorsEditorManager;
     [SerializeField] private UnityEvent _tilemapChanged;
@@ -29,30 +34,75 @@ public class TileMapVisualizer : MonoBehaviour
 
     private void PaintTiles(Tilemap tilemap)
     {
-        HashSet<Vector3Int> TileDatas = _simpleMapGenerator.GetMapTiles();
-        foreach (var Vector3Int in TileDatas)
+        List<TileDatas> TilesDatas = MazeData.MazeFloors[MazeData.CurrentFloor].TileInfos;
+        foreach (var tileDatas in TilesDatas)
         {
-            PaintSingleTile(tilemap, _codeTiles[Vector3Int.z], new Vector3Int(Vector3Int.x, Vector3Int.y));
+            PaintSingleTile(tilemap, tileDatas);
         }
     }
 
-    private void PaintSingleTile(Tilemap tilemap, TileBase tile, Vector3Int position)
+    private TileBase GetTileFromType(TileTag tag)
     {
-        tilemap.SetTile(new Vector3Int(position.x, position.y, 0), tile);
+        if (tag == TileTag.StraightVerticalWall || tag == TileTag.StraightHorizontalWall)
+        {
+            var tile = _codeTiles[1];
+
+            return tile;
+        }
+        else if (tag == TileTag.CornerDownLeftWall || tag == TileTag.CornerTopLeftWall || tag == TileTag.CornerDownRightWall || tag == TileTag.CornerTopRightWall)
+        {
+            var tile = _codeTiles[2];
+
+            return tile;
+        }
+        else if (tag == TileTag.ConnexionLeftTopRightWall || tag == TileTag.ConnexionRightDownLeftWall || tag == TileTag.ConnexionTopLeftDownWall || tag == TileTag.ConnexionTopRightDownWall)
+        {
+            var tile = _codeTiles[3];
+
+            return tile;
+        }
+        else if (tag == TileTag.ConnexionAllDirectionsWall)
+        {
+            var tile = _codeTiles[4];
+
+            return tile;
+        }
+        else
+        {
+            return _codeTiles[0];
+        }
+
+    }
+
+
+    private void PaintSingleTile(Tilemap tilemap, TileDatas tileDatas)
+    {
+        tilemap.SetTile(tileDatas.Position, GetTileFromType(tileDatas.Tag));
+
+        tilemap.SetTileFlags(tileDatas.Position, TileFlags.None); // Permet de modifier la transformation
+        Matrix4x4 rotationMatrix = Matrix4x4.Rotate(Quaternion.Euler(tileDatas.Rotation)); // Rotation de 90°
+        tilemap.SetTransformMatrix(tileDatas.Position, rotationMatrix);
+
         _tilemapChanged.Invoke();
     }
 
     public void Clear(bool isTotalReset = false)
     {
-        HashSet<Vector3Int> floorTiles = _simpleMapGenerator.GetMapTiles();
+        MazeData.MazeFloors[MazeData.CurrentFloor].TileInfos.Clear();
+        MazeData.MazeFloors[MazeData.CurrentFloor].EntreeSorties.Clear();
 
         _map.ClearAllTiles();
-        floorTiles.Clear();
+        _tilemapInOutAndMinerals.ClearAllTiles();
         if (!isTotalReset)
         {
             Vector3Int startPosition = _simpleMapGenerator.GetStartPosition();
-            floorTiles.Add(new Vector3Int() { x = startPosition.x, y = startPosition.y, z = (int)TileType.Floor });
-            _map.SetTile(new Vector3Int(startPosition.x, startPosition.y, 0), _codeTiles[(int)TileType.Floor]);
+            MazeData.MazeFloors[MazeData.CurrentFloor].TileInfos.Add(new()
+            {
+                Position = startPosition,
+                Rotation = Vector3Int.zero,
+                Tag = TileTag.Floor,
+            });
+            _map.SetTile(new Vector3Int(startPosition.x, startPosition.y, 0), _codeTiles[0]);
         }
         else
         {
@@ -61,20 +111,20 @@ public class TileMapVisualizer : MonoBehaviour
 
     }
 
-    public void AddTile(Vector3Int cellPosition, TileType tileType)
+    public void AddTile(Vector3Int cellPosition, TileTag tileType)
     {
-        HashSet<Vector3Int> floorTiles = _simpleMapGenerator.GetMapTiles();
+        TileDatas tileDatas = new()
+        {
+            Position = cellPosition,
+            Rotation = TileDatas.GetTileRotation(tileType),
+            Tag = tileType
+        };
+        MazeData.MazeFloors[MazeData.CurrentFloor].TileInfos.Add(tileDatas);
 
-        floorTiles.Add(new Vector3Int() { x = cellPosition.x, y = cellPosition.y, z = (int)tileType });
-        PaintSingleTile(_map, _codeTiles[(int)tileType], cellPosition);
+        PaintSingleTile(_map, tileDatas);
     }
 
-    public HashSet<Vector3Int> GetMapTiles()
-    {
-        HashSet<Vector3Int> floorTiles = _simpleMapGenerator.GetMapTiles();
 
-        return floorTiles;
-    }
 
     public Tilemap GetTileMap()
     {
@@ -83,24 +133,68 @@ public class TileMapVisualizer : MonoBehaviour
 
     public void LoadFloor(int index)
     {
+        MazeData.CurrentFloor = index;
         _map.ClearAllTiles();
-        _simpleMapGenerator.SetMapTiles(MazeData.MazeFloors[index].TileMap);
+
+        _tilemapInOutAndMinerals.ClearAllTiles();
+        initInOut();
+
         PaintTiles();
     }
 
+
     public void ChangeTileType(Vector3Int tilePos, int tileType)
     {
-        // PaintSingleTile(Map, codeTiles[tileType], tilePos);
         _simpleMapGenerator.SetTileType(tilePos, tileType);
     }
 
-    public bool SetInOut(Vector3Int tilePos)
+    private void initInOut()
     {
-       if(_map.GetTile(tilePos)==_codeTiles[(int)TileType.Floor]){
+        var InOuts = MazeData.MazeFloors[MazeData.CurrentFloor].EntreeSorties;
+        foreach (var InOut in InOuts)
+        {
+            _tilemapInOutAndMinerals.SetTile(InOut.Location, _inOutTileBase);
+        }
+        List<InOut> Destinations = MazeData.MazeFloors
+     .SelectMany(e => e.EntreeSorties.Where(io => io.IndexFloorDestination == MazeData.CurrentFloor))
+     .ToList();
 
-        return true;
-       }else{
-        return false;
-       }
+        foreach (var arrival in Destinations)
+        {
+            Debug.Log(arrival.SpawnInDestination);
+            _tilemapInOutAndMinerals.SetTile(arrival.SpawnInDestination, _destinationTileBase);
+        }
+
+    }
+
+    public void SetInOut(Vector3Int tilePos, int floorDestination, Vector3Int positionDestinationSpawn)
+    {
+        if (MazeData.MazeFloors[MazeData.CurrentFloor].EntreeSorties.Find((io) => io.Location == tilePos) != null)
+        {
+            _simpleMapGenerator.RemoveInOut(tilePos);
+            _tilemapInOutAndMinerals.SetTile(tilePos, null);
+            if (floorDestination == MazeData.CurrentFloor)
+            {
+                _tilemapInOutAndMinerals.SetTile(positionDestinationSpawn, null);
+            }
+        }
+        else
+        {
+            _simpleMapGenerator.AddInOut(tilePos, floorDestination, positionDestinationSpawn);
+            _tilemapInOutAndMinerals.SetTile(tilePos, _inOutTileBase);
+            if (floorDestination == MazeData.CurrentFloor)
+            {
+                _tilemapInOutAndMinerals.SetTile(positionDestinationSpawn, _destinationTileBase);
+            }
+        }
+    }
+
+    public void SetMineral(Vector3Int tilePos)
+    {
+        var currentFloor=MazeData.MazeFloors[MazeData.CurrentFloor];
+        if (currentFloor.TileInfos.Find(t=> t.Position==tilePos && t.Tag==TileTag.Floor) != null && _tilemapInOutAndMinerals.GetTile(tilePos)==null){
+                currentFloor.Minerals.Add(tilePos);
+                _tilemapInOutAndMinerals.SetTile(tilePos,_mineralTileBase);
+        }        
     }
 }

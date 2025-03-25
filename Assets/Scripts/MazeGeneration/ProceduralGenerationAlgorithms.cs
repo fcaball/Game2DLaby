@@ -3,11 +3,11 @@ using UnityEngine;
 
 public static class ProceduralGenerationAlgorithms
 {
-    public static HashSet<Vector3Int> SimpleRandomWalk(Vector3Int startPosition, int walkLength, List<Vector3Int> tileDatas)
+    public static HashSet<Vector3Int> SimpleRandomWalk(Vector3Int startPosition, int walkLength, List<TileDatas> tileDatas)
     {
         HashSet<Vector3Int> path = new()
         {
-            new() { x = startPosition.x, y = startPosition.y, z = (int)TileType.Floor }
+            new() { x = startPosition.x, y = startPosition.y, z =0}
         };
         var previousPosition = startPosition;
 
@@ -15,24 +15,15 @@ public static class ProceduralGenerationAlgorithms
         {
             var dir = Direction2D.GetRandomDirection();
             var newPosition = previousPosition + dir;
-            bool isPositionIsAccessible = true;
-            foreach (var tile in tileDatas)
-            {
-                if (newPosition.x == tile.x && newPosition.y == tile.y && tile.z == (int)TileType.StraightVerticalWall)
-                {
-                    isPositionIsAccessible = false;
-                }
-            }
-            if (isPositionIsAccessible)
-            {
-                path.Add(new() { x = newPosition.x, y = newPosition.y, z = (int)TileType.Floor });
-                previousPosition = newPosition;
-            }
+
+            path.Add(new() { x = newPosition.x, y = newPosition.y, z = 0 });
+            previousPosition = newPosition;
+
         }
         return path;
     }
 
-    public static HashSet<Vector3Int> SimpleCorridorRandomWalk(Vector3Int startPosition, int walkLength, List<Vector3Int> tileDatas)
+    public static HashSet<Vector3Int> SimpleCorridorRandomWalk(Vector3Int startPosition, int walkLength, List<TileDatas> tileDatas)
     {
         HashSet<Vector3Int> path = new();
         var previousPosition = startPosition;
@@ -41,7 +32,7 @@ public static class ProceduralGenerationAlgorithms
         for (int i = 0; i < walkLength; i++)
         {
             var newPosition = previousPosition + dir;
-            path.Add(new() { x = newPosition.x, y = newPosition.y, z = (int)TileType.Floor });
+            path.Add(new() { x = newPosition.x, y = newPosition.y, z = 0 });
             previousPosition = newPosition;
         }
         return path;

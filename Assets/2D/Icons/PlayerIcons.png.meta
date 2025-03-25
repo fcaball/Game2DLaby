@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 2cab2b84bbf013d459f131766afc940b
+guid: 210720a71ea210045abec77060918f65
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -48,7 +48,7 @@ TextureImporter:
   spriteMeshType: 1
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
-  spritePixelsToUnits: 32
+  spritePixelsToUnits: 100
   spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
@@ -110,7 +110,7 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: StraightHorizontaWall
+      name: PlayerModeOn
       rect:
         serializedVersion: 2
         x: 0
@@ -118,81 +118,37 @@ TextureImporter:
         width: 32
         height: 32
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 4115db3912f5387459db5ee62ce8f8fe
-      internalID: 981871740
+      spriteID: 9fa160b726f0ca34ab1e3d9fe8921cce
+      internalID: 1775229987
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: TopLeftCorner
+      name: PlayerModeOff
       rect:
         serializedVersion: 2
-        x: 37
+        x: 34
         y: 0
         width: 32
         height: 32
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: d8102211951e35f40ba9608dad8e2124
-      internalID: 122443050
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: TopLeftDown
-      rect:
-        serializedVersion: 2
-        x: 74
-        y: 0
-        width: 32
-        height: 32
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: e97ee11952e5a5c438b28f9d95543a16
-      internalID: -874316435
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: AllDirections
-      rect:
-        serializedVersion: 2
-        x: 111
-        y: 0
-        width: 32
-        height: 32
-      alignment: 0
-      pivot: {x: 0.5, y: 0.5}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: c714ff00b4bc5f8458a96e81dbb33b68
-      internalID: 1903561685
+      spriteID: 76e0b649d046af84fb0faca5c4194e37
+      internalID: -1878158783
       vertices: []
       indices: 
       edges: []
@@ -201,7 +157,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: bd5134283d6e7134ea6c63e813dabe4e
+    spriteID: b28a495d05e36914db2c98116de96490
     internalID: 0
     vertices: []
     indices: 
@@ -211,18 +167,8 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      AllDirections: 1903561685
-      ConnectionAllDirectionsWall: 1320412387
-      ConnectionLeftTopRight: 2105998929
-      ConnectionRightDownLeftWall: -1667266961
-      ConnectionTopLeftDownWall: -412775248
-      ConnectionTopRightDownWall: 155849009
-      DownRightCornerWall: 1920088846
-      StraightHorizontaWall: 981871740
-      StraightHorizontaWallMasked: 669755407
-      TopLeftCorner: 122443050
-      TopLeftDown: -874316435
-      TopRightCornerWall: 838214283
+      PlayerModeOff: -1878158783
+      PlayerModeOn: 1775229987
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
